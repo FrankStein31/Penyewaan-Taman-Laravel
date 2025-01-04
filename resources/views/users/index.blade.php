@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Users')
+@section('title', 'Manajemen User')
 
 @section('content')
 <div class="section-body">
@@ -8,10 +8,10 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h4>Daftar Users</h4>
+                    <h4>Daftar User</h4>
                     <div class="card-header-action">
                         <a href="{{ route('users.create') }}" class="btn btn-primary">
-                            Tambah User
+                            <i class="fas fa-plus"></i> Tambah User
                         </a>
                     </div>
                 </div>
@@ -34,6 +34,7 @@
                                     <th>No</th>
                                     <th>Nama</th>
                                     <th>Email</th>
+                                    <th>No. Telepon</th>
                                     <th>Role</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -44,35 +45,43 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $user->name }}</td>
                                         <td>{{ $user->email }}</td>
+                                        <td>{{ $user->phone }}</td>
                                         <td>
-                                            <span class="badge badge-{{ $user->role == 'admin' ? 'primary' : 'info' }}">
-                                                {{ $user->role }}
+                                            <span class="badge badge-{{ $user->role === 'admin' ? 'primary' : 'info' }}">
+                                                {{ ucfirst($user->role) }}
                                             </span>
                                         </td>
                                         <td>
                                             <a href="{{ route('users.edit', $user->id) }}" 
-                                               class="btn btn-warning btn-sm">Edit</a>
-                                            
-                                            <form action="{{ route('users.destroy', $user->id) }}" 
-                                                  method="POST" 
-                                                  class="d-inline"
-                                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-danger btn-sm">Hapus</button>
-                                            </form>
+                                               class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            @if($user->id !== auth()->id())
+                                                <form action="{{ route('users.destroy', $user->id) }}" 
+                                                      method="POST" 
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center">Tidak ada data</td>
+                                        <td colspan="6" class="text-center">Tidak ada data</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
-                    
-                    {{ $users->links() }}
+
+                    <div class="float-right">
+                        {{ $users->links() }}
+                    </div>
                 </div>
             </div>
         </div>

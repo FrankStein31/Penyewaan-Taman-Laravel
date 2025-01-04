@@ -14,8 +14,22 @@ class Taman extends Model
     protected $fillable = [
         'nama',
         'deskripsi',
-        'harga',
+        'lokasi',
+        'kapasitas',
+        'harga_per_hari',
+        'fasilitas',
         'gambar',
         'status'
     ];
+
+    protected $casts = [
+        'fasilitas' => 'array',
+        'status' => 'boolean',
+        'harga_per_hari' => 'decimal:2'
+    ];
+
+    public function pemesanan()
+    {
+        return $this->hasMany(Pemesanan::class);
+    }
 } 

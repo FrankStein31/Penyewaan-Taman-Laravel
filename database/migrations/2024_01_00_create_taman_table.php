@@ -12,9 +12,12 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->text('deskripsi');
-            $table->decimal('harga', 10, 2);
+            $table->string('lokasi');
+            $table->integer('kapasitas');
+            $table->decimal('harga_per_hari', 10, 2);
+            $table->text('fasilitas');
             $table->string('gambar')->nullable();
-            $table->boolean('status')->default(true);
+            $table->boolean('status')->default(true); // true = tersedia
             $table->timestamps();
         });
     }
