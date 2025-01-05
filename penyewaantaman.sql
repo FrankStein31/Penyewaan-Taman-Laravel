@@ -73,25 +73,35 @@ DROP TABLE IF EXISTS `pemesanan`;
 
 CREATE TABLE `pemesanan` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `kode` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` bigint unsigned NOT NULL,
   `taman_id` bigint unsigned NOT NULL,
   `tanggal_mulai` date NOT NULL,
   `tanggal_selesai` date NOT NULL,
+  `waktu_mulai` datetime NOT NULL,
+  `waktu_selesai` datetime NOT NULL,
   `keperluan` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `jumlah_orang` int DEFAULT NULL,
+  `total_hari` int unsigned NOT NULL,
+  `total_jam` int NOT NULL,
   `status` enum('pending','disetujui','ditolak','dibayar','selesai') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
   `total_harga` decimal(10,2) NOT NULL,
   `catatan_admin` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `kode` (`kode`),
   KEY `pemesanan_user_id_foreign` (`user_id`),
   KEY `pemesanan_taman_id_foreign` (`taman_id`),
   CONSTRAINT `pemesanan_taman_id_foreign` FOREIGN KEY (`taman_id`) REFERENCES `taman` (`id`) ON DELETE CASCADE,
   CONSTRAINT `pemesanan_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `pemesanan` */
+
+insert  into `pemesanan`(`id`,`kode`,`user_id`,`taman_id`,`tanggal_mulai`,`tanggal_selesai`,`waktu_mulai`,`waktu_selesai`,`keperluan`,`jumlah_orang`,`total_hari`,`total_jam`,`status`,`total_harga`,`catatan_admin`,`created_at`,`updated_at`) values 
+(5,'PSN-20250105-TJ8SL',2,4,'2025-01-06','2025-01-06','2025-01-06 10:41:00','2025-01-06 12:40:00','gabut',500,1,2,'ditolak',37187.50,'alasannya apa','2025-01-05 03:41:19','2025-01-05 04:42:13'),
+(8,'PSN-20250105-6GXKZ',2,3,'2025-01-06','2025-01-10','2025-01-06 11:55:00','2025-01-10 11:55:00','manten',500,4,96,'disetujui',2000000.00,NULL,'2025-01-05 04:55:17','2025-01-05 04:59:42');
 
 /*Table structure for table `taman` */
 
@@ -115,8 +125,8 @@ CREATE TABLE `taman` (
 /*Data for the table `taman` */
 
 insert  into `taman`(`id`,`nama`,`deskripsi`,`lokasi`,`kapasitas`,`harga_per_hari`,`fasilitas`,`gambar`,`status`,`created_at`,`updated_at`) values 
-(2,'Jus Mangga','ssssssss','sssssssssss',12,150000.00,'[\"Aula\",\"Toilet Umum\"]','taman/1735954405_Surat Keterangan Lulus - Frankie Steinlie.jpg',1,'2025-01-04 01:33:25','2025-01-05 03:05:32'),
-(3,'Sakartaji','apa lah gitu ya','Kediri',1000,500000.00,'[\"Air Mancur\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1736043240_Logo Polinema.png',1,'2025-01-05 02:14:00','2025-01-05 02:15:56'),
+(2,'Jus Mangga','ssssssss','sssssssssss',12,150000.00,'[\"Aula\",\"Toilet Umum\"]','taman/1735954405_Surat Keterangan Lulus - Frankie Steinlie.jpg',0,'2025-01-04 01:33:25','2025-01-05 03:05:32'),
+(3,'Sakartaji','apa lah gitu ya','Kediri',1000,500000.00,'[\"Air Mancur\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1736043240_Logo Polinema.png',0,'2025-01-05 02:14:00','2025-01-05 04:55:17'),
 (4,'Brantas','Samping sungai brantas','Kediri',2000,450000.00,'[\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1736044472_Logo Polinema.png',1,'2025-01-05 02:34:32','2025-01-05 02:34:32'),
 (5,'aaaaaaaaaa','aaaaaaaaaaaaa','aaaaaaaaaaaaaa',11111,900000.00,'[\"Air Mancur\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1736045550_Logo Polinema.png',1,'2025-01-05 02:52:30','2025-01-05 02:52:30'),
 (6,'bbbbbbbbbbbb','bbbbbbbbbbbbbbbbb','bbbbbbbbbbbbbbb',2000,800000.00,'[\"Aula\",\"Toilet Umum\"]','taman/1736045571_Logo Polinema.png',1,'2025-01-05 02:52:51','2025-01-05 02:52:51'),
