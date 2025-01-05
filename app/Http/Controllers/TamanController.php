@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Taman;
+use App\Models\Fasilitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,15 +13,26 @@ class TamanController extends Controller
     {
         $query = Taman::query();
 
-        // Filter untuk pencarian
+        // Filter untuk pencarian yang lebih baik
         if ($request->filled('search')) {
-            $query->where('nama', 'like', '%' . $request->search . '%')
-                  ->orWhere('lokasi', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('lokasi', 'like', '%' . $search . '%')
+                  ->orWhere('deskripsi', 'like', '%' . $search . '%')
+                  ->orWhereRaw('CAST(kapasitas AS CHAR) like ?', ['%' . $search . '%'])
+                  ->orWhereRaw('CAST(harga_per_hari AS CHAR) like ?', ['%' . $search . '%']);
+            });
         }
 
         // Filter berdasarkan range harga
-        if ($request->filled(['harga_min', 'harga_max'])) {
-            $query->whereBetween('harga_per_hari', [$request->harga_min, $request->harga_max]);
+        if ($request->filled('harga_min')) {
+            $hargaMin = str_replace('.', '', $request->harga_min);
+            $query->where('harga_per_hari', '>=', $hargaMin);
+        }
+        if ($request->filled('harga_max')) {
+            $hargaMax = str_replace('.', '', $request->harga_max);
+            $query->where('harga_per_hari', '<=', $hargaMax);
         }
 
         // Filter berdasarkan kapasitas
@@ -30,26 +42,51 @@ class TamanController extends Controller
 
         // Filter berdasarkan fasilitas
         if ($request->filled('fasilitas')) {
-            $query->where(function($q) use ($request) {
-                foreach($request->fasilitas as $fasilitas) {
-                    $q->whereJsonContains('fasilitas', $fasilitas);
-                }
-            });
+            foreach($request->fasilitas as $fasilitas) {
+                $query->whereJsonContains('fasilitas', $fasilitas);
+            }
         }
 
-        // Filter berdasarkan status (untuk non-admin selalu true)
+        // Filter non-admin hanya melihat yang tersedia
         if (!auth()->user()->isAdmin()) {
             $query->where('status', true);
         }
 
-        $taman = $query->latest()->paginate(10);
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'nama_asc':
+                $query->orderBy('nama', 'asc');
+                break;
+            case 'nama_desc':
+                $query->orderBy('nama', 'desc');
+                break;
+            case 'harga_asc':
+                $query->orderBy('harga_per_hari', 'asc');
+                break;
+            case 'harga_desc':
+                $query->orderBy('harga_per_hari', 'desc');
+                break;
+            case 'kapasitas_asc':
+                $query->orderBy('kapasitas', 'asc');
+                break;
+            case 'kapasitas_desc':
+                $query->orderBy('kapasitas', 'desc');
+                break;
+            default:
+                $query->latest();
+                break;
+        }
 
-        // Ambil semua fasilitas unik untuk dropdown
-        $allFasilitas = Taman::pluck('fasilitas')
-            ->flatten()
-            ->unique()
-            ->values()
-            ->all();
+        // Ambil jumlah data per halaman dari request, default 10
+        $perPage = $request->input('per_page', 10);
+        
+        $taman = $query->paginate($perPage)->withQueryString();
+        $allFasilitas = Fasilitas::orderBy('nama_fasilitas')->pluck('nama_fasilitas');
+
+        if ($request->ajax()) {
+            return view('taman.list', compact('taman'))->render();
+        }
 
         return view('taman.index', compact('taman', 'allFasilitas'));
     }
@@ -60,7 +97,8 @@ class TamanController extends Controller
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke halaman tersebut');
         }
-        return view('taman.create');
+        $fasilitas = Fasilitas::orderBy('nama_fasilitas')->get();
+        return view('taman.create', compact('fasilitas'));
     }
 
     public function store(Request $request)
@@ -107,7 +145,8 @@ class TamanController extends Controller
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke halaman tersebut');
         }
-        return view('taman.edit', compact('taman'));
+        $fasilitas = Fasilitas::orderBy('nama_fasilitas')->get();
+        return view('taman.edit', compact('taman', 'fasilitas'));
     }
 
     public function update(Request $request, Taman $taman)

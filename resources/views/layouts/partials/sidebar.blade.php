@@ -21,6 +21,11 @@
                         <i class="fas fa-users"></i> <span>Manajemen User</span>
                     </a>
                 </li>
+                <li class="{{ Request::is('fasilitas*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('fasilitas.index') }}">
+                        <i class="fas fa-building"></i> <span>Manajemen Fasilitas</span>
+                    </a>
+                </li>
                 <li class="{{ Request::is('taman*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('taman.index') }}">
                         <i class="fas fa-tree"></i> <span>Manajemen Taman</span>

@@ -16,6 +16,24 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/`penyewaantaman` /*!40100 DEFAULT CHARAC
 
 USE `penyewaantaman`;
 
+/*Table structure for table `fasilitas` */
+
+DROP TABLE IF EXISTS `fasilitas`;
+
+CREATE TABLE `fasilitas` (
+  `id_fasilitas` int NOT NULL AUTO_INCREMENT,
+  `nama_fasilitas` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_fasilitas`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+/*Data for the table `fasilitas` */
+
+insert  into `fasilitas`(`id_fasilitas`,`nama_fasilitas`) values 
+(1,'Gajebo'),
+(2,'Air Mancur'),
+(3,'Toilet Umum'),
+(5,'Aula');
+
 /*Table structure for table `migrations` */
 
 DROP TABLE IF EXISTS `migrations`;
@@ -75,9 +93,6 @@ CREATE TABLE `pemesanan` (
 
 /*Data for the table `pemesanan` */
 
-insert  into `pemesanan`(`id`,`user_id`,`taman_id`,`tanggal_mulai`,`tanggal_selesai`,`keperluan`,`jumlah_orang`,`status`,`total_harga`,`catatan_admin`,`created_at`,`updated_at`) values 
-(1,2,2,'2025-01-04','2025-01-11','Nongki',10,'pending',0.00,NULL,'2025-01-04 01:46:45','2025-01-04 01:46:45');
-
 /*Table structure for table `taman` */
 
 DROP TABLE IF EXISTS `taman`;
@@ -95,13 +110,17 @@ CREATE TABLE `taman` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `taman` */
 
 insert  into `taman`(`id`,`nama`,`deskripsi`,`lokasi`,`kapasitas`,`harga_per_hari`,`fasilitas`,`gambar`,`status`,`created_at`,`updated_at`) values 
-(1,'Sakartaji','Penjelasan detail','kediri',2000,500000.00,'[\"Gazebo\"]','taman/1735954363_Logo Polinema.png',1,'2025-01-04 01:31:04','2025-01-04 01:32:43'),
-(2,'Jus Mangga','sss','s',12,12.00,'[\"Toilet\"]','taman/1735954405_Surat Keterangan Lulus - Frankie Steinlie.jpg',1,'2025-01-04 01:33:25','2025-01-04 01:33:25');
+(2,'Jus Mangga','ssssssss','sssssssssss',12,150000.00,'[\"Aula\",\"Toilet Umum\"]','taman/1735954405_Surat Keterangan Lulus - Frankie Steinlie.jpg',1,'2025-01-04 01:33:25','2025-01-05 03:05:32'),
+(3,'Sakartaji','apa lah gitu ya','Kediri',1000,500000.00,'[\"Air Mancur\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1736043240_Logo Polinema.png',1,'2025-01-05 02:14:00','2025-01-05 02:15:56'),
+(4,'Brantas','Samping sungai brantas','Kediri',2000,450000.00,'[\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1736044472_Logo Polinema.png',1,'2025-01-05 02:34:32','2025-01-05 02:34:32'),
+(5,'aaaaaaaaaa','aaaaaaaaaaaaa','aaaaaaaaaaaaaa',11111,900000.00,'[\"Air Mancur\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1736045550_Logo Polinema.png',1,'2025-01-05 02:52:30','2025-01-05 02:52:30'),
+(6,'bbbbbbbbbbbb','bbbbbbbbbbbbbbbbb','bbbbbbbbbbbbbbb',2000,800000.00,'[\"Aula\",\"Toilet Umum\"]','taman/1736045571_Logo Polinema.png',1,'2025-01-05 02:52:51','2025-01-05 02:52:51'),
+(7,'cccccccccccccc','cqweqwras','asasdqwdq',50,100000.00,'[\"Toilet Umum\"]','taman/1736045597_Logo Polinema.png',1,'2025-01-05 02:53:17','2025-01-05 02:53:17');
 
 /*Table structure for table `users` */
 
@@ -126,7 +145,7 @@ CREATE TABLE `users` (
 
 insert  into `users`(`id`,`name`,`email`,`email_verified_at`,`password`,`phone`,`remember_token`,`created_at`,`updated_at`,`role`) values 
 (1,'admin','admin@gmail.com',NULL,'$2y$12$b3lbjH0MBwTGSF/XFpBk/.Ju2SPiYSz2Xyq89S.N6hqVNouRf4TBq','08512345678',NULL,'2025-01-04 01:04:00','2025-01-04 01:16:49','admin'),
-(2,'frankie','frankie.steinlie@gmail.com',NULL,'$2y$12$zSDTVt6c3giQ6PENFxg47ORM.pLr1o2JrtgFXbAEgpOmol1Erokdi','08883866931',NULL,'2025-01-04 01:22:53','2025-01-04 01:23:08','user');
+(2,'frankie','frankie.steinlie@gmail.com',NULL,'$2y$12$LgQvNXsuRaCpxDf2raK2je2VK74FvmweAm7QsJ8Q8V.C.wmygpbeC','08883866931',NULL,'2025-01-04 01:22:53','2025-01-05 02:38:29','user');
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

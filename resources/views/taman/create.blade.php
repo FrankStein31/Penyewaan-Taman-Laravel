@@ -82,15 +82,25 @@
                         <div class="form-group row mb-4">
                             <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Fasilitas</label>
                             <div class="col-sm-12 col-md-7">
-                                <select class="form-control select2" name="fasilitas[]" multiple required>
-                                    <option value="Toilet">Toilet</option>
-                                    <option value="Parkir">Parkir</option>
-                                    <option value="Musholla">Musholla</option>
-                                    <option value="Gazebo">Gazebo</option>
-                                    <option value="Tempat Sampah">Tempat Sampah</option>
-                                </select>
+                                <div class="row">
+                                    @foreach($fasilitas as $f)
+                                        <div class="col-md-4">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" 
+                                                       name="fasilitas[]" 
+                                                       class="custom-control-input" 
+                                                       id="fasilitas-{{ $f->id_fasilitas }}"
+                                                       value="{{ $f->nama_fasilitas }}"
+                                                       {{ in_array($f->nama_fasilitas, old('fasilitas', [])) ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="fasilitas-{{ $f->id_fasilitas }}">
+                                                    {{ $f->nama_fasilitas }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                                 @error('fasilitas')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>

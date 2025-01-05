@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TamanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\FasilitasController;
 use Illuminate\Support\Facades\Route;
 
 // Route untuk halaman utama
@@ -35,11 +36,10 @@ Route::middleware('auth')->group(function () {
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [ProfileController::class, 'password'])->name('profile.password');
     
-    // Manajemen User (akan dicek di controller)
     Route::resource('users', UserController::class);
-    
-    // Manajemen Taman (akan dicek di controller)
     Route::resource('taman', TamanController::class);
+    Route::resource('fasilitas', FasilitasController::class);
+
     
     // Pemesanan
     Route::resource('pemesanan', PemesananController::class);
