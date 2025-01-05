@@ -12,20 +12,27 @@ class Pemesanan extends Model
     protected $table = 'pemesanan';
     
     protected $fillable = [
+        'kode',
         'user_id',
         'taman_id',
         'tanggal_mulai',
         'tanggal_selesai',
+        'waktu_mulai',
+        'waktu_selesai',
         'keperluan',
         'jumlah_orang',
-        'status',
+        'total_hari',
+        'total_jam',
         'total_harga',
+        'status',
         'catatan_admin'
     ];
 
     protected $casts = [
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
+        'waktu_mulai' => 'datetime',
+        'waktu_selesai' => 'datetime',
         'total_harga' => 'decimal:2'
     ];
 
@@ -43,4 +50,9 @@ class Pemesanan extends Model
     {
         return $this->hasOne(Pembayaran::class);
     }
+
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_DISETUJUI = 'disetujui';
+    public const STATUS_DITOLAK = 'ditolak';
+    public const STATUS_SELESAI = 'selesai';
 } 

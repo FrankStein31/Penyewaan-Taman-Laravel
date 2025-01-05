@@ -63,13 +63,15 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="{{ asset('assets/js/stisla.js') }}"></script>
 
     <!-- Template JS File -->
-    <script src="{{ env('STISLA_JS') }}"></script>
-    <script src="{{ env('STISLA_SCRIPTS') }}"></script>
-    <script src="{{ env('STISLA_CUSTOM') }}"></script>
+    <script src="{{ asset('js/stisla.js') }}"></script>
+    <script src="{{ asset('js/scripts.js') }}"></script>
+    <script src="{{ asset('js/custom.js') }}"></script>
+    <script src="{{ asset('assets/js/scripts.js') }}"></script>
+    <script src="{{ asset('assets/js/custom.js') }}"></script>
 
-    <!-- Custom JS -->
     @stack('scripts')
 </body>
 </html>

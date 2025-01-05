@@ -40,11 +40,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('taman', TamanController::class);
     Route::resource('fasilitas', FasilitasController::class);
 
-    
     // Pemesanan
     Route::resource('pemesanan', PemesananController::class);
     Route::put('pemesanan/{pemesanan}/approve', [PemesananController::class, 'approve'])->name('pemesanan.approve');
     Route::put('pemesanan/{pemesanan}/reject', [PemesananController::class, 'reject'])->name('pemesanan.reject');
+    Route::delete('/pemesanan/{pemesanan}', [PemesananController::class, 'destroy'])->name('pemesanan.destroy');
 });
 
 // Route untuk password reset (jika diperlukan)

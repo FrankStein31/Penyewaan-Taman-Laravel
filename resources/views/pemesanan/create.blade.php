@@ -39,26 +39,42 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Tanggal Mulai</label>
-                                    <input type="date" name="tanggal_mulai" 
-                                           class="form-control @error('tanggal_mulai') is-invalid @enderror"
-                                           value="{{ old('tanggal_mulai') }}" 
-                                           min="{{ date('Y-m-d') }}" required>
-                                    @error('tanggal_mulai')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <label>Tanggal & Waktu Mulai</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="date" name="tanggal_mulai" 
+                                                   class="form-control @error('tanggal_mulai') is-invalid @enderror"
+                                                   value="{{ old('tanggal_mulai') }}" 
+                                                   min="{{ date('Y-m-d') }}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="time" name="waktu_mulai" 
+                                                   class="form-control @error('waktu_mulai') is-invalid @enderror"
+                                                   value="{{ old('waktu_mulai') }}" required>
+                                        </div>
+                                    </div>
+                                    @error('tanggal_mulai')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    @error('waktu_mulai')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Tanggal Selesai</label>
-                                    <input type="date" name="tanggal_selesai" 
-                                           class="form-control @error('tanggal_selesai') is-invalid @enderror"
-                                           value="{{ old('tanggal_selesai') }}" 
-                                           min="{{ date('Y-m-d') }}" required>
-                                    @error('tanggal_selesai')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <label>Tanggal & Waktu Selesai</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="date" name="tanggal_selesai" 
+                                                   class="form-control @error('tanggal_selesai') is-invalid @enderror"
+                                                   value="{{ old('tanggal_selesai') }}" 
+                                                   min="{{ date('Y-m-d') }}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="time" name="waktu_selesai" 
+                                                   class="form-control @error('waktu_selesai') is-invalid @enderror"
+                                                   value="{{ old('waktu_selesai') }}" required>
+                                        </div>
+                                    </div>
+                                    @error('tanggal_selesai')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    @error('waktu_selesai')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
                         </div>
@@ -111,40 +127,30 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Hitung total hari dan total bayar saat tanggal berubah
-    $('input[name="tanggal_mulai"], input[name="tanggal_selesai"]').change(function() {
+    $('input[type="date"], input[type="time"]').change(function() {
         let tanggalMulai = $('input[name="tanggal_mulai"]').val();
+        let waktuMulai = $('input[name="waktu_mulai"]').val();
         let tanggalSelesai = $('input[name="tanggal_selesai"]').val();
+        let waktuSelesai = $('input[name="waktu_selesai"]').val();
         
-        if (tanggalMulai && tanggalSelesai) {
-            let start = new Date(tanggalMulai);
-            let end = new Date(tanggalSelesai);
+        if (tanggalMulai && waktuMulai && tanggalSelesai && waktuSelesai) {
+            let start = new Date(tanggalMulai + ' ' + waktuMulai);
+            let end = new Date(tanggalSelesai + ' ' + waktuSelesai);
             
-            // Validasi tanggal selesai tidak boleh kurang dari tanggal mulai
-            if (end < start) {
-                alert('Tanggal selesai tidak boleh kurang dari tanggal mulai');
-                $('input[name="tanggal_selesai"]').val('');
+            if (end <= start) {
+                alert('Waktu selesai harus lebih besar dari waktu mulai');
+                $('input[name="waktu_selesai"]').val('');
                 return;
             }
             
-            // Hitung selisih hari
-            let diffTime = Math.abs(end - start);
-            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            let diffHours = Math.abs(end - start) / 36e5; // Convert to hours
+            let hargaPerJam = {{ $taman->harga_per_hari }} / 24;
+            let totalBayar = diffHours * hargaPerJam;
             
-            // Hitung total bayar
-            let hargaPerHari = {{ $taman->harga_per_hari }};
-            let totalBayar = diffDays * hargaPerHari;
-            
-            // Tampilkan informasi
-            $('#total_hari').text(diffDays + ' hari');
+            $('#total_waktu').text(diffHours.toFixed(1) + ' jam');
             $('#total_bayar').text('Rp ' + number_format(totalBayar));
         }
     });
-    
-    // Format number to currency
-    function number_format(number) {
-        return new Intl.NumberFormat('id-ID').format(number);
-    }
 });
 </script>
 @endpush 

@@ -40,6 +40,7 @@
                                     @endif
                                     <th>Taman</th>
                                     <th>Tanggal</th>
+                                    <th>Total Hari</th>
                                     <th>Total Bayar</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
@@ -55,10 +56,17 @@
                                         @endif
                                         <td>{{ $p->taman->nama }}</td>
                                         <td>
-                                            {{ $p->tanggal_mulai->format('d/m/Y') }} - 
-                                            {{ $p->tanggal_selesai->format('d/m/Y') }}
+                                            {{ $p->waktu_mulai->format('d/m/Y H:i') }} - 
+                                            {{ $p->waktu_selesai->format('d/m/Y H:i') }}
                                         </td>
-                                        <td>Rp {{ number_format($p->total_bayar, 0, ',', '.') }}</td>
+                                        <td>
+                                            @if($p->total_jam >= 24)
+                                                {{ $p->total_hari }} hari
+                                            @else
+                                                {{ $p->total_jam }} jam
+                                            @endif
+                                        </td>
+                                        <td>Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
                                         <td>
                                             <span class="badge badge-{{ 
                                                 $p->status === 'pending' ? 'warning' :
@@ -89,7 +97,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ auth()->user()->isAdmin() ? '8' : '7' }}" class="text-center">
+                                        <td colspan="{{ auth()->user()->isAdmin() ? '9' : '8' }}" class="text-center">
                                             Tidak ada data
                                         </td>
                                     </tr>
