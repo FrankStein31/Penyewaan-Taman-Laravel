@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="card card-primary">
-    <div class="card-header"><h4>Register</h4></div>
+    <div class="card-header"><h4>Daftar</h4></div>
 
     <div class="card-body">
         <form method="POST" action="{{ route('register') }}">
             @csrf
             <div class="form-group">
-                <label for="name">Name</label>
+                <label for="name">Nama</label>
                 <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autofocus>
                 @error('name')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -34,18 +34,18 @@
             </div>
 
             <div class="form-group">
-                <label for="password_confirmation">Confirm Password</label>
+                <label for="password_confirmation">Konfirmasi Password</label>
                 <input id="password_confirmation" type="password" class="form-control" name="password_confirmation" required>
             </div>
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary btn-lg btn-block">
-                    Register
+                    Daftar
                 </button>
             </div>
         </form>
         <div class="mt-5 text-center">
-            Already have an account? <a href="{{ route('login') }}">Login</a>
+            Sudah punya akun? <a href="{{ route('login') }}">Login</a>
         </div>
     </div>
 </div>
