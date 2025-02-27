@@ -22,6 +22,9 @@ class Kernel extends ConsoleKernel
         
         // Atau jalankan setiap jam
         // $schedule->command('taman:update-status')->hourly();
+        
+        // Jalankan command cek pemesanan kadaluarsa setiap 30 menit
+        $schedule->command('bookings:check-expired')->everyThirtyMinutes();
     }
 
     /**

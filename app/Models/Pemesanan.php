@@ -48,7 +48,7 @@ class Pemesanan extends Model
 
     public function pembayaran()
     {
-        return $this->hasOne(Pembayaran::class);
+        return $this->hasMany(Pembayaran::class);
     }
 
     public const STATUS_PENDING = 'pending';

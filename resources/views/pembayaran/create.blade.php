@@ -1,117 +1,114 @@
 @extends('layouts.app')
 
-@section('title', 'Upload Pembayaran')
+@section('title', 'Pembayaran')
 
 @section('content')
 <div class="section-body">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Upload Bukti Pembayaran</h4>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-money-bill-wave text-primary mr-2"></i>
+                        Pembayaran Pemesanan
+                    </h4>
                 </div>
+                
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card card-primary">
-                                <div class="card-header">
-                                    <h4>Informasi Pembayaran</h4>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table">
-                                        <tr>
-                                            <th style="width: 200px">ID Pemesanan</th>
-                                            <td>#{{ $pemesanan->id }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Taman</th>
-                                            <td>{{ $pemesanan->taman->nama }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Tanggal Sewa</th>
-                                            <td>
-                                                {{ $pemesanan->tanggal_mulai->format('d/m/Y') }} - 
-                                                {{ $pemesanan->tanggal_selesai->format('d/m/Y') }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Total yang Harus Dibayar</th>
-                                            <td>
-                                                <h4 class="text-primary">
-                                                    Rp {{ number_format($pemesanan->total_harga, 0, ',', '.') }}
-                                                </h4>
-                                            </td>
-                                        </tr>
-                                    </table>
-
-                                    <div class="alert alert-info mt-4">
-                                        <h6>Informasi Pembayaran:</h6>
-                                        <p class="mb-2">Silahkan transfer ke rekening berikut:</p>
-                                        <table class="mb-0">
-                                            <tr>
-                                                <td style="width: 100px">Bank</td>
-                                                <td>: BRI</td>
-                                            </tr>
-                                            <tr>
-                                                <td>No. Rekening</td>
-                                                <td>: 1234-5678-9012-3456</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Atas Nama</td>
-                                                <td>: DLHKP KOTA KEDIRI</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Informasi Pemesanan -->
+                    <div class="mb-4">
+                        <h5 class="text-dark">Detail Pemesanan</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th width="30%">Kode Pemesanan</th>
+                                    <td>{{ $pemesanan->kode }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Taman</th>
+                                    <td>{{ $pemesanan->taman->nama }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tanggal Mulai</th>
+                                    <td>{{ \Carbon\Carbon::parse($pemesanan->waktu_mulai)->format('d/m/Y H:i') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tanggal Selesai</th>
+                                    <td>{{ \Carbon\Carbon::parse($pemesanan->waktu_selesai)->format('d/m/Y H:i') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Total Harga</th>
+                                    <td class="font-weight-bold text-primary">Rp {{ number_format($pemesanan->total_harga, 0, ',', '.') }}</td>
+                                </tr>
+                            </table>
                         </div>
-
-                        <div class="col-md-6">
-                            <form action="{{ route('pembayaran.store', $pemesanan->id) }}" 
-                                  method="POST" 
-                                  enctype="multipart/form-data">
+                    </div>
+                    
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="midtrans-tab" data-toggle="tab" href="#midtrans" role="tab" aria-controls="midtrans" aria-selected="true">
+                                <i class="fas fa-credit-card mr-1"></i> Pembayaran Online
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="manual-tab" data-toggle="tab" href="#manual" role="tab" aria-controls="manual" aria-selected="false">
+                                <i class="fas fa-upload mr-1"></i> Upload Bukti Transfer
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-4" id="myTabContent">
+                        <!-- Pembayaran Midtrans -->
+                        <div class="tab-pane fade show active" id="midtrans" role="tabpanel" aria-labelledby="midtrans-tab">
+                            <div class="text-center mb-4">
+                                <p class="mb-4">Klik tombol di bawah untuk membayar menggunakan berbagai metode pembayaran</p>
+                                <button id="pay-button" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-credit-card mr-1"></i> Bayar Sekarang
+                                </button>
+                            </div>
+                            
+                            <form action="{{ route('pembayaran.store') }}" method="POST" id="midtrans-form">
                                 @csrf
+                                <input type="hidden" name="metode_pembayaran" value="midtrans">
+                                <input type="hidden" name="pemesanan_id" value="{{ $pemesanan->id }}">
+                                <input type="hidden" name="jumlah" value="{{ $pemesanan->total_harga }}">
+                                <input type="hidden" name="json_result" id="json-result">
+                            </form>
+                        </div>
+                        
+                        <!-- Upload Bukti Transfer -->
+                        <div class="tab-pane fade" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading font-weight-bold"><i class="fas fa-info-circle mr-2"></i>Informasi Rekening</h6>
+                                <p class="mb-0">Silakan transfer ke rekening berikut:</p>
+                                <ul class="mb-0 mt-2">
+                                    <li>Bank BCA: 1234567890 a.n. DLHKP Kota Kediri</li>
+                                    <li>Bank BRI: 0987654321 a.n. DLHKP Kota Kediri</li>
+                                </ul>
+                            </div>
+                            
+                            <form action="{{ route('pembayaran.store') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <input type="hidden" name="metode_pembayaran" value="manual">
+                                <input type="hidden" name="pemesanan_id" value="{{ $pemesanan->id }}">
+                                <input type="hidden" name="jumlah" value="{{ $pemesanan->total_harga }}">
                                 
                                 <div class="form-group">
-                                    <label>Upload Bukti Transfer</label>
-                                    <div id="image-preview" class="image-preview">
-                                        <label for="image-upload" id="image-label">Pilih File</label>
-                                        <input type="file" name="bukti_pembayaran" 
-                                               id="image-upload" 
-                                               class="@error('bukti_pembayaran') is-invalid @enderror"
-                                               accept="image/*" 
-                                               required>
+                                    <label class="font-weight-bold">Upload Bukti Transfer <span class="text-danger">*</span></label>
+                                    <div class="custom-file">
+                                        <input type="file" name="bukti_pembayaran" class="custom-file-input @error('bukti_pembayaran') is-invalid @enderror" id="bukti_pembayaran" required>
+                                        <label class="custom-file-label" for="bukti_pembayaran">Pilih file</label>
+                                        <small class="form-text text-muted">Format: JPG, PNG, JPEG. Maks: 2MB</small>
+                                        @error('bukti_pembayaran')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
-                                    @error('bukti_pembayaran')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="form-text text-muted">
-                                        Format: JPG, JPEG, PNG (Max. 2MB)
-                                    </small>
                                 </div>
-
-                                <div class="form-group">
-                                    <label>Catatan (Opsional)</label>
-                                    <textarea name="catatan" class="form-control" rows="3">{{ old('catatan') }}</textarea>
-                                </div>
-
-                                <div class="alert alert-warning">
-                                    <h6>Perhatian!</h6>
-                                    <ul class="mb-0">
-                                        <li>Pastikan nominal transfer sesuai dengan total yang harus dibayar</li>
-                                        <li>Upload bukti pembayaran yang jelas dan dapat dibaca</li>
-                                        <li>Admin akan memverifikasi pembayaran Anda dalam 1x24 jam</li>
-                                    </ul>
-                                </div>
-
-                                <div class="form-group">
+                                
+                                <div class="text-right">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-upload"></i> Upload Bukti Pembayaran
+                                        <i class="fas fa-paper-plane mr-1"></i> Kirim Bukti Pembayaran
                                     </button>
-                                    <a href="{{ route('pemesanan.show', $pemesanan->id) }}" 
-                                       class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left"></i> Kembali
-                                    </a>
                                 </div>
                             </form>
                         </div>
@@ -123,60 +120,36 @@
 </div>
 @endsection
 
-@push('styles')
-<style>
-.image-preview {
-    width: 100%;
-    min-height: 200px;
-    border: 2px dashed #ddd;
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-    background-color: #ffffff;
-    color: #ecf0f1;
-}
-
-.image-preview input {
-    line-height: 200px;
-    font-size: 200px;
-    position: absolute;
-    opacity: 0;
-    z-index: 10;
-}
-
-.image-preview label {
-    position: absolute;
-    z-index: 5;
-    opacity: 0.8;
-    cursor: pointer;
-    background-color: #bdc3c7;
-    width: 150px;
-    height: 50px;
-    font-size: 12px;
-    line-height: 50px;
-    text-transform: uppercase;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: auto;
-    text-align: center;
-}
-</style>
-@endpush
-
 @push('scripts')
-<script src="{{ asset('js/jquery.uploadPreview.min.js') }}"></script>
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 <script>
-$(document).ready(function() {
-    $.uploadPreview({
-        input_field: "#image-upload",
-        preview_box: "#image-preview",
-        label_field: "#image-label",
-        label_default: "Pilih File",
-        label_selected: "Ganti File",
-        no_label: false
+    let payButton = document.getElementById('pay-button');
+    payButton.addEventListener('click', function () {
+        snap.pay('{{ $snapToken }}', {
+            onSuccess: function(result) {
+                document.getElementById('json-result').value = JSON.stringify(result);
+                document.getElementById('midtrans-form').submit();
+            },
+            onPending: function(result) {
+                document.getElementById('json-result').value = JSON.stringify(result);
+                document.getElementById('midtrans-form').submit();
+            },
+            onError: function(result) {
+                alert("Pembayaran gagal!");
+                console.log(result);
+            },
+            onClose: function() {
+                alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+            }
+        });
     });
-});
+    
+    // File input
+    $(document).ready(function() {
+        $('.custom-file-input').on('change', function() {
+            let fileName = $(this).val().split('\\').pop();
+            $(this).next('.custom-file-label').addClass("selected").html(fileName);
+        });
+    });
 </script>
-@endpush 
+@endpush

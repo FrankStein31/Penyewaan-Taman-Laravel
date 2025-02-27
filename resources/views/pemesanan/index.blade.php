@@ -43,6 +43,7 @@
                                     <th>Total Hari</th>
                                     <th>Total Bayar</th>
                                     <th>Status</th>
+                                    <th>Pembayaran</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -75,6 +76,42 @@
                                             }}">
                                                 {{ ucfirst($p->status) }}
                                             </span>
+                                        </td>
+                                        <td>
+                                            @php
+                                                $pembayaran = $p->pembayaran()->latest()->first();
+                                            @endphp
+                                            
+                                            @if(auth()->user()->isAdmin())
+                                                @if(!$pembayaran && $p->status == 'disetujui')
+                                                    <span class="badge bg-danger text-white">Belum Dibayar</span>
+                                                @elseif($pembayaran)
+                                                    @if($pembayaran->status == 'pending')
+                                                        <span class="badge bg-warning text-white">Menunggu Verifikasi</span>
+                                                    @elseif($pembayaran->status == 'diverifikasi')
+                                                        <span class="badge bg-success text-white">Lunas</span>
+                                                    @elseif($pembayaran->status == 'ditolak')
+                                                        <span class="badge bg-danger text-white">Pembayaran Ditolak</span>
+                                                    @endif
+                                                @else
+                                                    <span class="badge bg-secondary text-white">-</span>
+                                                @endif
+                                            @else
+                                                @if(!$pembayaran && $p->status == 'disetujui')
+                                                    <a href="{{ route('pembayaran.create', $p) }}" class="btn btn-sm btn-primary">Bayar Sekarang</a>
+                                                @elseif($pembayaran)
+                                                    @if($pembayaran->status == 'pending')
+                                                        <span class="badge bg-warning text-white">Menunggu Verifikasi</span>
+                                                    @elseif($pembayaran->status == 'diverifikasi')
+                                                        <span class="badge bg-success text-white">Terverifikasi</span>
+                                                    @elseif($pembayaran->status == 'ditolak')
+                                                        <span class="badge bg-danger text-white">Ditolak</span>
+                                                        <a href="{{ route('pembayaran.create', $p) }}" class="btn btn-sm btn-primary">Bayar Ulang</a>
+                                                    @endif
+                                                @else
+                                                    <span class="badge bg-secondary text-white">-</span>
+                                                @endif
+                                            @endif
                                         </td>
                                         <td>
                                             <a href="{{ route('pemesanan.show', $p->id) }}" 

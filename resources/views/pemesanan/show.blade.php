@@ -29,6 +29,26 @@
                                     <i class="fas fa-times mr-1"></i> Tolak
                                 </button>
                             @endif
+                            
+                            @if(auth()->user()->isAdmin() && $pemesanan->status === 'dibayar')
+                                <form action="{{ route('pemesanan.selesai', $pemesanan->id) }}" 
+                                      method="POST" 
+                                      class="d-inline"
+                                      onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan pemesanan ini?')">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="btn btn-info btn-lg px-4">
+                                        <i class="fas fa-check-circle mr-1"></i> Selesaikan Pemesanan
+                                    </button>
+                                </form>
+                            @endif
+                            
+                            @if(!auth()->user()->isAdmin() && $pemesanan->status === 'disetujui' && !$pembayaran)
+                                <a href="{{ route('pembayaran.create', $pemesanan) }}" class="btn btn-primary btn-lg px-4">
+                                    <i class="fas fa-money-bill mr-1"></i> Bayar Sekarang
+                                </a>
+                            @endif
+                            
                             <a href="{{ route('pemesanan.index') }}" class="btn btn-secondary btn-lg px-4 ml-2">
                                 <i class="fas fa-arrow-left mr-1"></i> Kembali
                             </a>
@@ -77,17 +97,30 @@
                         </div>
                     @endif
 
+                    @if($pemesanan->status == 'disetujui' && !$pembayaran && !auth()->user()->isAdmin())
+                    <div class="alert alert-warning alert-dismissible show fade">
+                        <div class="alert-body">
+                            <button class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                            <i class="fas fa-exclamation-triangle mr-2"></i> Silakan lakukan pembayaran untuk menyelesaikan pemesanan Anda.
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Status Badge -->
                     <div class="text-center mb-4">
                         <span class="badge badge-lg badge-{{ 
                             $pemesanan->status === 'pending' ? 'warning' :
                             ($pemesanan->status === 'disetujui' ? 'success' :
-                            ($pemesanan->status === 'ditolak' ? 'danger' : 'info'))
+                            ($pemesanan->status === 'ditolak' ? 'danger' : 
+                            ($pemesanan->status === 'dibayar' ? 'info' : 'secondary')))
                         }} px-4 py-2" style="font-size: 1rem;">
                             <i class="fas fa-{{ 
                                 $pemesanan->status === 'pending' ? 'clock' :
                                 ($pemesanan->status === 'disetujui' ? 'check-circle' :
-                                ($pemesanan->status === 'ditolak' ? 'times-circle' : 'info-circle'))
+                                ($pemesanan->status === 'ditolak' ? 'times-circle' : 
+                                ($pemesanan->status === 'dibayar' ? 'money-bill-wave' : 'flag-checkered')))
                             }} mr-2"></i>
                             {{ ucfirst($pemesanan->status) }}
                         </span>
@@ -151,11 +184,11 @@
                                         </tr>
                                         <tr>
                                             <th class="pl-0">Tanggal Mulai</th>
-                                            <td class="text-right">{{ $pemesanan->waktu_mulai->format('d/m/Y H:i') }}</td>
+                                            <td class="text-right">{{ \Carbon\Carbon::parse($pemesanan->waktu_mulai)->format('d/m/Y H:i') }}</td>
                                         </tr>
                                         <tr>
                                             <th class="pl-0">Tanggal Selesai</th>
-                                            <td class="text-right">{{ $pemesanan->waktu_selesai->format('d/m/Y H:i') }}</td>
+                                            <td class="text-right">{{ \Carbon\Carbon::parse($pemesanan->waktu_selesai)->format('d/m/Y H:i') }}</td>
                                         </tr>
                                         <tr>
                                             <th class="pl-0">Durasi</th>
@@ -166,6 +199,10 @@
                                                     {{ $pemesanan->total_jam }} jam
                                                 @endif
                                             </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="pl-0">Jumlah Orang</th>
+                                            <td class="text-right">{{ number_format($pemesanan->jumlah_orang) }} orang</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -191,10 +228,20 @@
                                             <th class="pl-0">Harga per Jam</th>
                                             <td class="text-right">Rp {{ number_format($pemesanan->taman->harga_per_hari / 24, 0, ',', '.') }}</td>
                                         </tr>
+                                        <tr>
+                                            <th class="pl-0">Total Durasi</th>
+                                            <td class="text-right">
+                                                @if($pemesanan->total_jam >= 24)
+                                                    {{ $pemesanan->total_hari }} hari ({{ $pemesanan->total_jam }} jam)
+                                                @else
+                                                    {{ $pemesanan->total_jam }} jam
+                                                @endif
+                                            </td>
+                                        </tr>
                                     </table>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="bg-white p-4 rounded">
+                                    <div class="bg-white p-4 rounded shadow-sm">
                                         <h6 class="text-muted mb-2">Total Pembayaran</h6>
                                         <h3 class="text-primary mb-0">Rp {{ number_format($pemesanan->total_harga, 0, ',', '.') }}</h3>
                                     </div>
@@ -202,6 +249,96 @@
                             </div>
                         </div>
                     </div>
+
+                    @if($pembayaran)
+                    <div class="card bg-light mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <i class="fas fa-receipt text-primary mr-2"></i>
+                                Status Pembayaran
+                                @if($pembayaran->status == 'pending')
+                                    <span class="badge badge-warning ml-2">Menunggu Verifikasi</span>
+                                @elseif($pembayaran->status == 'diverifikasi')
+                                    <span class="badge badge-success ml-2">Terverifikasi</span>
+                                @elseif($pembayaran->status == 'ditolak')
+                                    <span class="badge badge-danger ml-2">Ditolak</span>
+                                @endif
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <th class="pl-0">Jumlah Dibayar</th>
+                                            <td class="text-right">Rp {{ number_format($pembayaran->jumlah, 0, ',', '.') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="pl-0">Tanggal Pembayaran</th>
+                                            <td class="text-right">{{ \Carbon\Carbon::parse($pembayaran->created_at)->format('d/m/Y H:i') }}</td>
+                                        </tr>
+                                        @if($pembayaran->status == 'ditolak' && $pembayaran->catatan)
+                                        <tr>
+                                            <th class="pl-0">Catatan</th>
+                                            <td class="text-right text-danger">{{ $pembayaran->catatan }}</td>
+                                        </tr>
+                                        @endif
+                                    </table>
+                                    
+                                    @if($pembayaran->status == 'ditolak' && !auth()->user()->isAdmin())
+                                    <div class="mt-3">
+                                        <a href="{{ route('pembayaran.create', $pemesanan) }}" class="btn btn-primary">
+                                            <i class="fas fa-redo mr-1"></i> Bayar Ulang
+                                        </a>
+                                    </div>
+                                    @endif
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-center">
+                                        <h6 class="text-muted mb-2">Bukti Pembayaran</h6>
+                                        <img src="{{ asset('storage/' . $pembayaran->bukti_pembayaran) }}" 
+                                            class="img-fluid rounded shadow-sm" 
+                                            style="max-height: 200px;" alt="Bukti Pembayaran">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if(auth()->user()->isAdmin() && $pembayaran->status == 'pending')
+                    <div class="card bg-light mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <i class="fas fa-check-circle text-primary mr-2"></i>
+                                Verifikasi Pembayaran
+                            </h5>
+                            <form action="{{ route('pembayaran.verifikasi', $pembayaran) }}" method="POST">
+                                @csrf
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Status</label>
+                                            <select name="status" class="form-control" required>
+                                                <option value="diverifikasi">Terima Pembayaran</option>
+                                                <option value="ditolak">Tolak Pembayaran</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Catatan (wajib jika ditolak)</label>
+                                            <textarea name="catatan" class="form-control" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane mr-1"></i> Proses Verifikasi
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @endif
+                    @endif
 
                     @if($pemesanan->taman->gambar)
                     <div class="card bg-light mt-4">

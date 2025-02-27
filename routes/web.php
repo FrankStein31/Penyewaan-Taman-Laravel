@@ -9,6 +9,7 @@ use App\Http\Controllers\TamanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\FasilitasController;
+use App\Http\Controllers\PembayaranController;
 use Illuminate\Support\Facades\Route;
 
 // Route untuk halaman utama
@@ -45,6 +46,13 @@ Route::middleware('auth')->group(function () {
     Route::put('pemesanan/{pemesanan}/approve', [PemesananController::class, 'approve'])->name('pemesanan.approve');
     Route::put('pemesanan/{pemesanan}/reject', [PemesananController::class, 'reject'])->name('pemesanan.reject');
     Route::delete('/pemesanan/{pemesanan}', [PemesananController::class, 'destroy'])->name('pemesanan.destroy');
+    Route::put('/pemesanan/{id}/selesai', [PemesananController::class, 'selesai'])->name('pemesanan.selesai');
+    
+    // Pembayaran
+    Route::get('pembayaran/create/{pemesanan}', [PembayaranController::class, 'create'])->name('pembayaran.create');
+    Route::post('pembayaran/verifikasi/{pembayaran}', [PembayaranController::class, 'verifikasi'])->name('pembayaran.verifikasi');
+    Route::post('pembayaran/callback', [PembayaranController::class, 'callback'])->name('pembayaran.callback');
+    Route::resource('pembayaran', PembayaranController::class)->except(['create']);
 });
 
 // Route untuk password reset (jika diperlukan)

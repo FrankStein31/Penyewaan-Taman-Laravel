@@ -6,140 +6,174 @@ use App\Models\Pembayaran;
 use App\Models\Pemesanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class PembayaranController extends Controller
 {
+    public function __construct()
+    {
+        // Set konfigurasi Midtrans
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
+        Config::$isSanitized = env('MIDTRANS_IS_SANITIZED', true);
+        Config::$is3ds = env('MIDTRANS_IS_3DS', true);
+    }
+    
     public function index()
     {
-        if (auth()->user()->isAdmin()) {
-            $pembayaran = Pembayaran::with(['pemesanan.user', 'pemesanan.taman'])
-                ->latest()
-                ->paginate(10);
-        } else {
-            $pembayaran = Pembayaran::whereHas('pemesanan', function($query) {
-                $query->where('user_id', auth()->id());
+        $pembayaran = Pembayaran::with(['pemesanan.user', 'pemesanan.taman'])
+            ->when(!auth()->user()->isAdmin(), function ($query) {
+                return $query->whereHas('pemesanan', function ($q) {
+                    return $q->where('user_id', auth()->id());
+                });
             })
-            ->with(['pemesanan.taman'])
             ->latest()
             ->paginate(10);
-        }
-
+            
         return view('pembayaran.index', compact('pembayaran'));
     }
-
+    
     public function create(Pemesanan $pemesanan)
     {
-        if ($pemesanan->user_id !== auth()->id()) {
+        if (auth()->id() !== $pemesanan->user_id && !auth()->user()->isAdmin()) {
             abort(403);
         }
-
-        if ($pemesanan->status !== 'disetujui') {
-            return back()->with('error', 'Pemesanan belum disetujui');
-        }
-
-        if ($pemesanan->pembayaran) {
-            return redirect()->route('pembayaran.show', $pemesanan->pembayaran);
-        }
-
-        return view('pembayaran.create', compact('pemesanan'));
+        
+        // Buat transaksi Midtrans
+        $params = [
+            'transaction_details' => [
+                'order_id' => 'SPT-' . $pemesanan->id . '-' . time(),
+                'gross_amount' => (int) $pemesanan->total_harga,
+            ],
+            'customer_details' => [
+                'first_name' => auth()->user()->name,
+                'email' => auth()->user()->email,
+                'phone' => auth()->user()->phone ?? '',
+            ],
+            'item_details' => [
+                [
+                    'id' => 'TAMAN-' . $pemesanan->taman->id,
+                    'price' => (int) $pemesanan->total_harga,
+                    'quantity' => 1,
+                    'name' => 'Sewa Taman: ' . $pemesanan->taman->nama,
+                ]
+            ],
+        ];
+        
+        $snapToken = Snap::getSnapToken($params);
+        
+        return view('pembayaran.create', compact('pemesanan', 'snapToken'));
     }
-
-    public function store(Request $request, Pemesanan $pemesanan)
+    
+    public function store(Request $request)
     {
-        if ($pemesanan->user_id !== auth()->id()) {
+        $request->validate([
+            'pemesanan_id' => 'required|exists:pemesanan,id',
+            'metode_pembayaran' => 'required|in:midtrans,manual',
+            'json_result' => 'nullable|required_if:metode_pembayaran,midtrans',
+            'bukti_pembayaran' => 'nullable|required_if:metode_pembayaran,manual|image|max:2048',
+            'jumlah' => 'required|numeric|min:1'
+        ]);
+        
+        $pemesanan = Pemesanan::findOrFail($request->pemesanan_id);
+        
+        if (auth()->id() !== $pemesanan->user_id && !auth()->user()->isAdmin()) {
             abort(403);
         }
-
-        $request->validate([
-            'bukti_pembayaran' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
-
-        if ($request->hasFile('bukti_pembayaran')) {
-            $bukti = $request->file('bukti_pembayaran');
-            $path = $bukti->store('public/pembayaran');
-            $filename = str_replace('public/', '', $path);
-        }
-
-        $pembayaran = Pembayaran::create([
-            'pemesanan_id' => $pemesanan->id,
-            'bukti_pembayaran' => $filename,
-            'jumlah' => $pemesanan->total_harga,
+        
+        $pembayaranData = [
+            'pemesanan_id' => $request->pemesanan_id,
+            'jumlah' => $request->jumlah,
             'status' => 'pending'
-        ]);
-
-        // Kirim notifikasi ke admin
-        $this->sendNotification($pembayaran, 'new_payment');
-
-        return redirect()->route('pembayaran.show', $pembayaran)
-            ->with('success', 'Bukti pembayaran berhasil diupload');
+        ];
+        
+        if ($request->metode_pembayaran == 'midtrans') {
+            $result = json_decode($request->json_result);
+            
+            $pembayaranData['transaction_id'] = $result->transaction_id ?? null;
+            $pembayaranData['order_id'] = $result->order_id ?? null;
+            $pembayaranData['payment_type'] = $result->payment_type ?? null;
+            $pembayaranData['payment_data'] = $request->json_result;
+            
+            // Jika settlement langsung, update status
+            if (isset($result->transaction_status) && 
+                ($result->transaction_status == 'capture' || $result->transaction_status == 'settlement')) {
+                $pembayaranData['status'] = 'diverifikasi';
+                $pemesanan->update(['status' => 'dibayar']);
+            }
+        } else {
+            // Upload bukti pembayaran untuk metode manual
+            $path = $request->file('bukti_pembayaran')->store('bukti_pembayaran', 'public');
+            $pembayaranData['bukti_pembayaran'] = $path;
+        }
+        
+        Pembayaran::create($pembayaranData);
+        
+        return redirect()->route('pemesanan.show', $pemesanan->id)
+            ->with('success', 'Pembayaran berhasil dibuat, silakan tunggu verifikasi admin');
     }
-
+    
     public function show(Pembayaran $pembayaran)
     {
-        if (!auth()->user()->isAdmin() && $pembayaran->pemesanan->user_id !== auth()->id()) {
+        if (auth()->id() !== $pembayaran->pemesanan->user_id && !auth()->user()->isAdmin()) {
             abort(403);
         }
-
-        $pembayaran->load('pemesanan.user', 'pemesanan.taman');
+        
         return view('pembayaran.show', compact('pembayaran'));
     }
-
+    
     public function verifikasi(Request $request, Pembayaran $pembayaran)
     {
         if (!auth()->user()->isAdmin()) {
             abort(403);
         }
-
+        
         $request->validate([
             'status' => 'required|in:diverifikasi,ditolak',
-            'catatan' => 'required_if:status,ditolak'
+            'catatan' => 'nullable|required_if:status,ditolak|string'
         ]);
-
+        
         $pembayaran->update([
             'status' => $request->status,
             'catatan' => $request->catatan
         ]);
-
+        
         // Update status pemesanan jika pembayaran diverifikasi
-        if ($request->status === 'diverifikasi') {
+        if ($request->status == 'diverifikasi') {
             $pembayaran->pemesanan->update(['status' => 'dibayar']);
         }
-
-        // Kirim notifikasi ke user
-        $this->sendNotification($pembayaran, 'payment_verified');
-
-        return redirect()->route('pembayaran.show', $pembayaran)
-            ->with('success', 'Status pembayaran berhasil diupdate');
+        
+        return redirect()->route('pemesanan.show', $pembayaran->pemesanan_id)
+            ->with('success', 'Status pembayaran berhasil diperbarui');
     }
-
-    private function sendNotification($pembayaran, $type)
+    
+    public function callback(Request $request)
     {
-        // Implementasi notifikasi email/WA akan ditambahkan nanti
-        // Contoh logika:
-        switch ($type) {
-            case 'new_payment':
-                // Kirim notifikasi ke admin bahwa ada pembayaran baru
-                break;
-            case 'payment_verified':
-                // Kirim notifikasi ke user bahwa pembayaran sudah diverifikasi
-                break;
+        $serverKey = env('MIDTRANS_SERVER_KEY');
+        $hashed = hash("sha512", $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
+        
+        if($hashed == $request->signature_key) {
+            $order_id = $request->order_id;
+            
+            $pembayaran = Pembayaran::where('order_id', $order_id)->first();
+            
+            if($pembayaran) {
+                if($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
+                    $pembayaran->update(['status' => 'diverifikasi']);
+                    
+                    // Update status pemesanan juga
+                    $pembayaran->pemesanan->update(['status' => 'dibayar']);
+                }
+                elseif($request->transaction_status == 'deny' || $request->transaction_status == 'expire' || $request->transaction_status == 'cancel') {
+                    $pembayaran->update([
+                        'status' => 'ditolak',
+                        'catatan' => 'Pembayaran ' . $request->transaction_status
+                    ]);
+                }
+            }
         }
+        
+        return response('OK', 200);
     }
-
-    public function destroy(Pembayaran $pembayaran)
-    {
-        if (!auth()->user()->isAdmin()) {
-            abort(403);
-        }
-
-        // Hapus file bukti pembayaran
-        if ($pembayaran->bukti_pembayaran) {
-            Storage::delete('public/' . $pembayaran->bukti_pembayaran);
-        }
-
-        $pembayaran->delete();
-
-        return redirect()->route('pembayaran.index')
-            ->with('success', 'Data pembayaran berhasil dihapus');
-    }
-} 
+}

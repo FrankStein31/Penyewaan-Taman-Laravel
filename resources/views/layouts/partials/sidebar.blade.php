@@ -46,6 +46,11 @@
                     <i class="fas fa-calendar"></i> <span>Pemesanan</span>
                 </a>
             </li>
+            <li class="{{ Request::is('pembayaran*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('pembayaran.index') }}">
+                    <i class="fas fa-money-bill"></i> <span>Pembayaran</span>
+                </a>
+            </li>
 
             <li class="menu-header">Pengaturan</li>
             <li class="{{ Request::is('profile*') ? 'active' : '' }}">

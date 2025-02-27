@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pemesanan;
+use App\Models\Pembayaran;
 use App\Models\Taman;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -137,8 +138,11 @@ class PemesananController extends Controller
         if (!auth()->user()->isAdmin() && $pemesanan->user_id !== auth()->id()) {
             abort(403);
         }
+        
+        // Ambil data pembayaran jika ada
+        $pembayaran = $pemesanan->pembayaran()->latest()->first();
 
-        return view('pemesanan.show', compact('pemesanan'));
+        return view('pemesanan.show', compact('pemesanan', 'pembayaran'));
     }
 
     public function approve(Pemesanan $pemesanan)
@@ -210,5 +214,106 @@ class PemesananController extends Controller
             return back()
                 ->with('error', 'Terjadi kesalahan saat membatalkan pemesanan');
         }
+    }
+
+    public function uploadBuktiPembayaran(Request $request, Pemesanan $pemesanan)
+    {
+        try {
+            $request->validate([
+                'bukti_pembayaran' => 'required|image|max:2048',
+                'jumlah' => 'required|numeric|min:1'
+            ]);
+
+            // Pastikan pemesanan milik user yang login
+            if ($pemesanan->user_id !== auth()->id()) {
+                abort(403);
+            }
+            
+            // Pastikan status pemesanan disetujui
+            if ($pemesanan->status !== 'disetujui') {
+                return back()->with('error', 'Pembayaran hanya bisa dilakukan untuk pemesanan yang disetujui');
+            }
+
+            // Upload bukti pembayaran
+            $path = $request->file('bukti_pembayaran')->store('bukti_pembayaran', 'public');
+
+            // Buat data pembayaran
+            $pembayaran = $pemesanan->pembayaran()->create([
+                'bukti_pembayaran' => $path,
+                'jumlah' => $request->jumlah,
+                'status' => 'pending'
+            ]);
+
+            // Update status pemesanan
+            $pemesanan->update(['status' => 'dibayar']);
+
+            // Kirim email notifikasi pembayaran
+            Mail::to($pemesanan->user->email)->send(new PemesananMail($pemesanan, 'payment_uploaded'));
+
+            return redirect()->route('pemesanan.show', $pemesanan->id)
+                ->with('success', 'Bukti pembayaran berhasil diunggah');
+        } catch (\Exception $e) {
+            \Log::error('Upload Pembayaran Error: ' . $e->getMessage());
+            return back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function verifikasiPembayaran(Request $request, Pemesanan $pemesanan)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $pembayaran = $pemesanan->pembayaran()->latest()->first();
+        
+        if (!$pembayaran) {
+            return back()->with('error', 'Pembayaran tidak ditemukan');
+        }
+
+        $status = $request->status;
+        $catatan = $request->catatan;
+
+        $pembayaran->update([
+            'status' => $status,
+            'catatan' => $catatan
+        ]);
+
+        // Jika ditolak, kembalikan status pemesanan ke disetujui
+        if ($status == 'ditolak') {
+            $pemesanan->update(['status' => 'disetujui']);
+        }
+
+        // Kirim email notifikasi
+        Mail::to($pemesanan->user->email)->send(new PemesananMail($pemesanan, 'payment_' . $status));
+
+        return redirect()->route('pemesanan.show', $pemesanan->id)
+            ->with('success', 'Pembayaran berhasil diverifikasi');
+    }
+
+    public function selesai($id)
+    {
+        $pemesanan = Pemesanan::findOrFail($id);
+        
+        // Hanya admin yang dapat menyelesaikan pemesanan
+        if (!auth()->user()->isAdmin()) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk melakukan tindakan ini.');
+        }
+        
+        // Pemesanan harus dalam status 'dibayar' untuk dapat diselesaikan
+        if ($pemesanan->status !== 'dibayar') {
+            return redirect()->back()->with('error', 'Hanya pemesanan dengan status disetujui yang dapat diselesaikan.');
+        }
+        
+        // Update status pemesanan menjadi selesai
+        $pemesanan->update(['status' => 'selesai']);
+        
+        // Update status taman menjadi tersedia
+        if ($pemesanan->taman) {
+            $pemesanan->taman->update(['status' => '1']);
+        }
+        
+        return redirect()->back()->with('success', 'Pemesanan berhasil diselesaikan.');
     }
 } 
