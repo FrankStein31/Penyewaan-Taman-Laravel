@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Midtrans\Config;
 use Midtrans\Snap;
+use App\Mail\PemesananMail;
+use Illuminate\Support\Facades\Mail;
 
 class PembayaranController extends Controller
 {
@@ -101,11 +103,20 @@ class PembayaranController extends Controller
                 ($result->transaction_status == 'capture' || $result->transaction_status == 'settlement')) {
                 $pembayaranData['status'] = 'diverifikasi';
                 $pemesanan->update(['status' => 'dibayar']);
+                
+                Mail::to($pemesanan->user->email)->send(new PemesananMail($pemesanan, 'payment_diverifikasi'));
+                
+                Pembayaran::create($pembayaranData);
+                
+                return redirect()->route('pemesanan.show', $pemesanan->id)
+                    ->with('success', 'Pembayaran berhasil');
             }
         } else {
-            // Upload bukti pembayaran untuk metode manual
             $path = $request->file('bukti_pembayaran')->store('bukti_pembayaran', 'public');
             $pembayaranData['bukti_pembayaran'] = $path;
+            
+            // Kirim email notifikasi menunggu verifikasi (hanya untuk pembayaran manual)
+            Mail::to($pemesanan->user->email)->send(new PemesananMail($pemesanan, 'payment_uploaded'));
         }
         
         Pembayaran::create($pembayaranData);
@@ -143,6 +154,9 @@ class PembayaranController extends Controller
         if ($request->status == 'diverifikasi') {
             $pembayaran->pemesanan->update(['status' => 'dibayar']);
         }
+        
+        // Kirim email notifikasi pembayaran
+        Mail::to($pembayaran->pemesanan->user->email)->send(new PemesananMail($pembayaran->pemesanan, 'payment_' . $request->status));
         
         return redirect()->route('pemesanan.show', $pembayaran->pemesanan_id)
             ->with('success', 'Status pembayaran berhasil diperbarui');

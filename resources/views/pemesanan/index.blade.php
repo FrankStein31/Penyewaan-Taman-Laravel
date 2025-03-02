@@ -72,7 +72,9 @@
                                             <span class="badge badge-{{ 
                                                 $p->status === 'pending' ? 'warning' :
                                                 ($p->status === 'disetujui' ? 'success' :
-                                                ($p->status === 'ditolak' ? 'danger' : 'info'))
+                                                ($p->status === 'selesai' ? 'success' :
+                                                ($p->status === 'ditolak' ? 'danger' :
+                                                ($p->status === 'dibayar' ? 'info' : 'secondary'))))
                                             }}">
                                                 {{ ucfirst($p->status) }}
                                             </span>

@@ -303,7 +303,7 @@ class PemesananController extends Controller
         
         // Pemesanan harus dalam status 'dibayar' untuk dapat diselesaikan
         if ($pemesanan->status !== 'dibayar') {
-            return redirect()->back()->with('error', 'Hanya pemesanan dengan status disetujui yang dapat diselesaikan.');
+            return redirect()->back()->with('error', 'Hanya pemesanan dengan status dibayar yang dapat diselesaikan.');
         }
         
         // Update status pemesanan menjadi selesai
@@ -311,8 +311,11 @@ class PemesananController extends Controller
         
         // Update status taman menjadi tersedia
         if ($pemesanan->taman) {
-            $pemesanan->taman->update(['status' => '1']);
+            $pemesanan->taman->update(['status' => 1]);
         }
+        
+        // Kirim email notifikasi
+        Mail::to($pemesanan->user->email)->send(new PemesananMail($pemesanan, 'completed'));
         
         return redirect()->back()->with('success', 'Pemesanan berhasil diselesaikan.');
     }

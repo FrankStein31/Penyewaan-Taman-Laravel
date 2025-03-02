@@ -24,8 +24,12 @@ class PemesananMail extends Mailable
     {
         $subject = match($this->type) {
             'created' => 'Pemesanan Baru - Menunggu Persetujuan',
-            'approved' => 'Pemesanan Disetujui',
+            'approved' => 'Pemesanan Disetujui - Silahkan Lakukan Pembayaran',
             'rejected' => 'Pemesanan Ditolak',
+            'payment_uploaded' => 'Pembayaran Diterima - Menunggu Verifikasi',
+            'payment_diverifikasi' => 'Pembayaran Berhasil Diverifikasi',
+            'payment_ditolak' => 'Pembayaran Ditolak - Mohon Upload Ulang',
+            'completed' => 'Pemesanan Telah Selesai',
             default => 'Update Status Pemesanan'
         };
 
