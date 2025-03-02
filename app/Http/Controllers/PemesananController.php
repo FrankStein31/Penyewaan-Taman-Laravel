@@ -10,22 +10,61 @@ use Carbon\Carbon;
 use App\Mail\PemesananMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PemesananExport;
 
 class PemesananController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Check dan update expired bookings
         $this->updateExpiredBookings();
 
+        // Dapatkan parameter filter
+        $status = $request->status;
+        $pembayaranStatus = $request->pembayaran_status;
+        $keyword = $request->keyword;
+
+        // Buat query dasar
+        $query = Pemesanan::query();
+
+        // Filter berdasarkan peran user
         if (auth()->user()->isAdmin()) {
-            $pemesanan = Pemesanan::with(['user', 'taman'])->latest()->paginate(10);
+            $query->with(['user', 'taman']);
         } else {
-            $pemesanan = Pemesanan::with(['taman'])
-                ->where('user_id', auth()->id())
-                ->latest()
-                ->paginate(10);
+            $query->with(['taman'])
+                ->where('user_id', auth()->id());
         }
+
+        // Filter berdasarkan status pemesanan
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        // Filter berdasarkan status pembayaran
+        if ($pembayaranStatus) {
+            if ($pembayaranStatus == 'belum_bayar') {
+                $query->where('status', 'disetujui')
+                      ->whereDoesntHave('pembayaran');
+            } else {
+                $query->whereHas('pembayaran', function($q) use ($pembayaranStatus) {
+                    $q->where('status', $pembayaranStatus);
+                });
+            }
+        }
+
+        // Filter berdasarkan kata kunci
+        if ($keyword) {
+            $query->where(function($q) use ($keyword) {
+                $q->where('kode', 'like', "%{$keyword}%")
+                  ->orWhereHas('taman', function($q2) use ($keyword) {
+                      $q2->where('nama', 'like', "%{$keyword}%");
+                  });
+            });
+        }
+
+        // Ambil data dengan urutan terbaru
+        $pemesanan = $query->latest()->paginate(10);
 
         return view('pemesanan.index', compact('pemesanan'));
     }
@@ -318,5 +357,14 @@ class PemesananController extends Controller
         Mail::to($pemesanan->user->email)->send(new PemesananMail($pemesanan, 'completed'));
         
         return redirect()->back()->with('success', 'Pemesanan berhasil diselesaikan.');
+    }
+
+    public function export() 
+    {
+        if (auth()->user()->isAdmin()) {
+            return Excel::download(new PemesananExport, 'laporan-pemesanan-' . date('Y-m-d') . '.xlsx');
+        } else {
+            return Excel::download(new PemesananExport(auth()->id()), 'pemesanan-saya-' . date('Y-m-d') . '.xlsx');
+        }
     }
 } 

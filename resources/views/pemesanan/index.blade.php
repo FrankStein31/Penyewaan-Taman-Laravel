@@ -9,15 +9,60 @@
             <div class="card">
                 <div class="card-header">
                     <h4>Daftar Pemesanan</h4>
-                    @if(!auth()->user()->isAdmin())
-                        <div class="card-header-action">
-                            <a href="{{ route('taman.index') }}" class="btn btn-primary">
+                    <div class="card-header-action">
+                        @if(!auth()->user()->isAdmin())
+                            <a href="{{ route('taman.index') }}" class="btn btn-primary mr-2">
                                 <i class="fas fa-plus"></i> Buat Pemesanan
                             </a>
-                        </div>
-                    @endif
+                        @endif
+                        <a href="{{ route('pemesanan.export') }}" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
+                    <form action="{{ route('pemesanan.index') }}" method="GET" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Status Pemesanan</label>
+                                    <select name="status" class="form-control">
+                                        <option value="">Semua Status</option>
+                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                                        <option value="dibayar" {{ request('status') == 'dibayar' ? 'selected' : '' }}>Dibayar</option>
+                                        <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                        <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Status Pembayaran</label>
+                                    <select name="pembayaran_status" class="form-control">
+                                        <option value="">Semua Status</option>
+                                        <option value="belum_bayar" {{ request('pembayaran_status') == 'belum_bayar' ? 'selected' : '' }}>Belum Dibayar</option>
+                                        <option value="pending" {{ request('pembayaran_status') == 'pending' ? 'selected' : '' }}>Menunggu Verifikasi</option>
+                                        <option value="diverifikasi" {{ request('pembayaran_status') == 'diverifikasi' ? 'selected' : '' }}>Terverifikasi</option>
+                                        <option value="ditolak" {{ request('pembayaran_status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Kata Kunci</label>
+                                    <input type="text" name="keyword" class="form-control" placeholder="Kode/Taman" value="{{ request('keyword') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">Filter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible show fade">
                             <div class="alert-body">
@@ -146,7 +191,7 @@
                     </div>
 
                     <div class="float-right">
-                        {{ $pemesanan->links() }}
+                        {{ $pemesanan->appends(request()->all())->links() }}
                     </div>
                 </div>
             </div>

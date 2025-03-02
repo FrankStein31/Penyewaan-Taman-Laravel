@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('fasilitas', FasilitasController::class);
 
     // Pemesanan
+    Route::get('/pemesanan/export', [PemesananController::class, 'export'])->name('pemesanan.export');
     Route::resource('pemesanan', PemesananController::class);
     Route::put('pemesanan/{pemesanan}/approve', [PemesananController::class, 'approve'])->name('pemesanan.approve');
     Route::put('pemesanan/{pemesanan}/reject', [PemesananController::class, 'reject'])->name('pemesanan.reject');
