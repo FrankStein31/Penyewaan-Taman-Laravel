@@ -598,15 +598,16 @@
                 <div class="col-lg-4 col-md-6">
                     <h5 class="footer-title">Kontak</h5>
                     <ul class="footer-links">
-                        <li><i class="fas fa-map-marker-alt mr-2"></i> Jl. Taman Indah No. 123, Jakarta</li>
-                        <li><i class="fas fa-phone mr-2"></i> +62 21 1234 5678</li>
-                        <li><i class="fas fa-envelope mr-2"></i> info@tamansewa.id</li>
+                        <li><i class="fas fa-map-marker-alt mr-2"></i> Jalan Basuki Rahmad No.15, Kelurahan Pocanan, Kota Kediri</li>
+                        <!-- <li><i class="fas fa-phone mr-2"></i> +628883866931</li> -->
+                        <li><i class="fas fa-envelope mr-2"></i> https://www.kedirikota.go.id/</li>
                     </ul>
                 </div>
             </div>
             
             <div class="copyright">
                 <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+                <p>Created with love by <a href="https://www.instagram.com/steinliejoki/" target="_blank">Owner</a></p>
             </div>
         </div>
     </footer>
@@ -629,8 +630,7 @@
             }
         });
         
-        // Smooth scrolling
-        $('a[href*="/"]').on('click', function(e) {
+        $('a[href^="#"]').on('click', function(e) {
             e.preventDefault();
             $('html, body').animate(
                 {
