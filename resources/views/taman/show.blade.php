@@ -59,7 +59,7 @@
                                     <td>{{ number_format($taman->kapasitas) }} orang</td>
                                 </tr>
                                 <tr>
-                                    <th>Harga per Hari</th>
+                                    <th>Biaya Retribusi Fasilitas</th>
                                     <td>Rp {{ number_format($taman->harga_per_hari, 0, ',', '.') }}</td>
                                 </tr>
                                 <tr>

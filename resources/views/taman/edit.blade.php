@@ -64,7 +64,7 @@
                         </div>
 
                         <div class="form-group row mb-4">
-                            <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Harga per Hari</label>
+                            <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Biaya Retribusi Fasilitas</label>
                             <div class="col-sm-12 col-md-7">
                                 <div class="input-group">
                                     <div class="input-group-prepend">

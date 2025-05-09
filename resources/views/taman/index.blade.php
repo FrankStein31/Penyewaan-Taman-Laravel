@@ -170,7 +170,7 @@
                                         <th>Nama Taman</th>
                                         <th>Lokasi</th>
                                         <th>Kapasitas</th>
-                                        <th>Harga/Hari</th>
+                                        <th>Biaya Retribusi Fasilitas</th>
                                         <th>Status</th>
                                         <th>Aksi</th>
                                     </tr>
