@@ -77,7 +77,7 @@
                             <div class="col-md-4 mb-4">
                                 <div style="margin-bottom: 15px;">
                                     <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">
-                                        <i class="fas fa-tag" style="margin-right: 8px; color: #3498db;"></i>Range Harga per Hari
+                                        <i class="fas fa-tag" style="margin-right: 8px; color: #3498db;"></i>Range Biaya Retribusi Fasilitas
                                     </label>
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <input type="number" 
