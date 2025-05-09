@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah User')
+@section('title', 'Tambah Pengguna')
 
 @section('content')
 <div class="section-body">
@@ -8,7 +8,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h4>Tambah User Baru</h4>
+                    <h4>Tambah Pengguna Baru</h4>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('users.store') }}" method="POST">

@@ -18,7 +18,7 @@
                 <li class="menu-header">Master Data</li>
                 <li class="{{ Request::is('users*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('users.index') }}">
-                        <i class="fas fa-users"></i> <span>Manajemen User</span>
+                        <i class="fas fa-users"></i> <span>Manajemen Pengguna</span>
                     </a>
                 </li>
                 <li class="{{ Request::is('fasilitas*') ? 'active' : '' }}">
