@@ -11,12 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #6777ef;
-            --secondary-color: #34395e;
-            --accent-color: #ffa426;
-            --dark-color: #191d3a;
-            --light-color: #f4f6fc;
-            --success-color: #47c363;
+            --primary-color: #018347;
+            --secondary-color: #12372A;
+            --accent-color: #FBFADA;
+            --dark-color: #12372A;
+            --light-color: #D0D0D0;
+            --success-color: #018347;
         }
         
         body {
@@ -118,6 +118,22 @@
             font-weight: 500;
             font-size: 16px;
             padding: 10px 15px;
+            position: relative;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 15px;
+            background-color: #fff;
+            transition: width 0.3s ease;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link:hover::after {
+            width: calc(100% - 30px);
         }
         
         .navbar-dark .navbar-nav .nav-link:hover {
