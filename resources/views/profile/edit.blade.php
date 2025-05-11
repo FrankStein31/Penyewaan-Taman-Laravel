@@ -24,7 +24,7 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <form action="{{ route('profile.update') }}" method="POST">
+                            <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
                                 
@@ -56,6 +56,26 @@
                                     @error('phone')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Foto Profil</label>
+                                    <div class="custom-file">
+                                        <input type="file" name="profile_photo" 
+                                              class="custom-file-input @error('profile_photo') is-invalid @enderror" 
+                                              id="profile_photo">
+                                        <label class="custom-file-label" for="profile_photo">Pilih foto...</label>
+                                        @error('profile_photo')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    @if(auth()->user()->profile_photo)
+                                        <div class="mt-3">
+                                            <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}" 
+                                                alt="Foto Profil" class="img-thumbnail" width="150">
+                                        </div>
+                                    @endif
+                                    <small class="form-text text-muted">Biarkan kosong jika tidak ingin mengubah foto.</small>
                                 </div>
 
                                 <div class="form-group">

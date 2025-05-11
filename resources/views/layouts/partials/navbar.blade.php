@@ -7,6 +7,15 @@
 <ul class="navbar-nav navbar-right">
     <li class="dropdown">
         <a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user">
+            @if(auth()->user()->profile_photo)
+                <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}" alt="Foto Profil" class="rounded-circle mr-1" width="30" height="30">
+            @else
+                <div class="d-inline-block">
+                    <div class="avatar bg-primary text-white rounded-circle mr-1" style="width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+                </div>
+            @endif
             <div class="d-sm-none d-lg-inline-block">
                 Hi, {{ auth()->user()->name }}
             </div>

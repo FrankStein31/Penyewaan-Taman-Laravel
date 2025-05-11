@@ -32,6 +32,7 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
+                                    <th>Foto</th>
                                     <th>Nama</th>
                                     <th>Email</th>
                                     <th>No. Telepon</th>
@@ -43,6 +44,17 @@
                                 @forelse($users as $user)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
+                                        <td>
+                                            @if($user->profile_photo)
+                                                <img src="{{ asset('storage/' . $user->profile_photo) }}" 
+                                                     alt="Foto {{ $user->name }}" 
+                                                     class="rounded-circle" width="40" height="40">
+                                            @else
+                                                <div class="avatar bg-primary text-white rounded-circle" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;">
+                                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                                </div>
+                                            @endif
+                                        </td>
                                         <td>{{ $user->name }}</td>
                                         <td>{{ $user->email }}</td>
                                         <td>{{ $user->phone }}</td>
@@ -72,7 +84,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center">Tidak ada data</td>
+                                        <td colspan="7" class="text-center">Tidak ada data</td>
                                     </tr>
                                 @endforelse
                             </tbody>

@@ -11,7 +11,7 @@
                     <h4>Tambah Pengguna Baru</h4>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('users.store') }}" method="POST">
+                    <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
                         <div class="form-group row mb-4">
@@ -81,6 +81,22 @@
                                 @error('phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row mb-4">
+                            <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Foto Profil</label>
+                            <div class="col-sm-12 col-md-7">
+                                <div class="custom-file">
+                                    <input type="file" name="profile_photo" 
+                                          class="custom-file-input @error('profile_photo') is-invalid @enderror" 
+                                          id="profile_photo">
+                                    <label class="custom-file-label" for="profile_photo">Pilih foto...</label>
+                                    @error('profile_photo')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <small class="form-text text-muted">Upload foto opsional (maks. 2MB)</small>
                             </div>
                         </div>
 

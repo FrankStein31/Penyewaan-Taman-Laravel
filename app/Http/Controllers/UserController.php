@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -42,15 +43,23 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:admin,user',
             'phone' => 'required|string|max:20',
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        User::create([
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'phone' => $request->phone,
-        ]);
+        ];
+
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('profile_photos', 'public');
+            $data['profile_photo'] = $path;
+        }
+
+        User::create($data);
 
         return redirect()->route('users.index')
             ->with('success', 'User berhasil ditambahkan');
@@ -78,6 +87,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|in:admin,user',
             'phone' => 'required|string|max:20',
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $data = [
@@ -93,6 +103,17 @@ class UserController extends Controller
             ]);
             
             $data['password'] = Hash::make($request->password);
+        }
+
+        if ($request->hasFile('profile_photo')) {
+            // Hapus foto lama jika ada
+            if ($user->profile_photo) {
+                Storage::disk('public')->delete($user->profile_photo);
+            }
+            
+            // Simpan foto baru
+            $path = $request->file('profile_photo')->store('profile_photos', 'public');
+            $data['profile_photo'] = $path;
         }
 
         $user->update($data);
@@ -111,6 +132,10 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')
                 ->with('error', 'Anda tidak dapat menghapus akun Anda sendiri');
+        }
+
+        if ($user->profile_photo) {
+            Storage::disk('public')->delete($user->profile_photo);
         }
 
         $user->delete();
