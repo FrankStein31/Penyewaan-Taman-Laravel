@@ -14,7 +14,6 @@ class WelcomeController extends Controller
         // Ambil taman yang paling sering dipesan
         $tamanPopuler = Taman::select('taman.*', DB::raw('COUNT(pemesanan.id) as total_pemesanan'))
             ->leftJoin('pemesanan', 'taman.id', '=', 'pemesanan.taman_id')
-            ->where('taman.status', true)
             ->groupBy('taman.id')
             ->orderByDesc('total_pemesanan')
             ->orderByDesc('taman.created_at')
@@ -23,8 +22,7 @@ class WelcomeController extends Controller
 
         // Jika belum ada pemesanan, ambil taman terbaru
         if ($tamanPopuler->isEmpty()) {
-            $tamanPopuler = Taman::where('status', true)
-                ->latest()
+            $tamanPopuler = Taman::latest()
                 ->take(6)
                 ->get();
         }
