@@ -24,6 +24,8 @@ class PemesananController extends Controller
         $status = $request->status;
         $pembayaranStatus = $request->pembayaran_status;
         $keyword = $request->keyword;
+        $tanggalMulai = $request->tanggal_mulai;
+        $tanggalSelesai = $request->tanggal_selesai;
 
         // Buat query dasar
         $query = Pemesanan::query();
@@ -51,6 +53,16 @@ class PemesananController extends Controller
                     $q->where('status', $pembayaranStatus);
                 });
             }
+        }
+
+        // Filter berdasarkan tanggal mulai
+        if ($tanggalMulai) {
+            $query->whereDate('waktu_mulai', '>=', $tanggalMulai);
+        }
+
+        // Filter berdasarkan tanggal selesai
+        if ($tanggalSelesai) {
+            $query->whereDate('waktu_selesai', '<=', $tanggalSelesai);
         }
 
         // Filter berdasarkan kata kunci

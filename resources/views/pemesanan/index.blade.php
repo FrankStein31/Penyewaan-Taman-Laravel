@@ -25,6 +25,18 @@
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
+                                    <label>Tanggal Mulai</label>
+                                    <input type="date" name="tanggal_mulai" class="form-control" value="{{ request('tanggal_mulai') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Tanggal Selesai</label>
+                                    <input type="date" name="tanggal_selesai" class="form-control" value="{{ request('tanggal_selesai') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
                                     <label>Status Pemesanan</label>
                                     <select name="status" class="form-control">
                                         <option value="">Semua Status</option>
@@ -48,13 +60,13 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-8">
                                 <div class="form-group">
                                     <label>Kata Kunci</label>
                                     <input type="text" name="keyword" class="form-control" placeholder="Kode/Taman" value="{{ request('keyword') }}">
                                 </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label>&nbsp;</label>
                                     <button type="submit" class="btn btn-primary btn-block">Filter</button>
