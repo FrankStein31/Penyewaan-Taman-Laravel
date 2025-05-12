@@ -193,11 +193,7 @@
                                         <tr>
                                             <th class="pl-0">Durasi</th>
                                             <td class="text-right">
-                                                @if($pemesanan->total_jam >= 24)
-                                                    {{ $pemesanan->total_hari }} hari
-                                                @else
-                                                    {{ $pemesanan->total_jam }} jam
-                                                @endif
+                                                {{ $pemesanan->total_hari }} hari
                                             </td>
                                         </tr>
                                         <tr>
@@ -225,17 +221,9 @@
                                             <td class="text-right">Rp {{ number_format($pemesanan->taman->harga_per_hari, 0, ',', '.') }}</td>
                                         </tr>
                                         <tr>
-                                            <th class="pl-0">Harga per Jam</th>
-                                            <td class="text-right">Rp {{ number_format($pemesanan->taman->harga_per_hari / 24, 0, ',', '.') }}</td>
-                                        </tr>
-                                        <tr>
                                             <th class="pl-0">Total Durasi</th>
                                             <td class="text-right">
-                                                @if($pemesanan->total_jam >= 24)
-                                                    {{ $pemesanan->total_hari }} hari ({{ $pemesanan->total_jam }} jam)
-                                                @else
-                                                    {{ $pemesanan->total_jam }} jam
-                                                @endif
+                                                {{ $pemesanan->total_hari }} hari
                                             </td>
                                         </tr>
                                     </table>
@@ -292,11 +280,26 @@
                                     @endif
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="text-center">
+                                    <div class="text-center chocolat-parent">
                                         <h6 class="text-muted mb-2">Bukti Pembayaran</h6>
-                                        <img src="{{ asset('storage/' . $pembayaran->bukti_pembayaran) }}" 
-                                            class="img-fluid rounded shadow-sm" 
-                                            style="max-height: 200px;" alt="Bukti Pembayaran">
+                                        @if($pembayaran->bukti_pembayaran)
+                                            <a href="{{ asset('storage/' . $pembayaran->bukti_pembayaran) }}" class="chocolat-image">
+                                                <img src="{{ asset('storage/' . $pembayaran->bukti_pembayaran) }}" 
+                                                    class="img-fluid rounded shadow-sm" 
+                                                    style="max-height: 200px" alt="Bukti Pembayaran">
+                                            </a>
+                                            <small class="d-block mt-2 text-muted">Klik gambar untuk memperbesar</small>
+                                        @elseif(isset($pembayaran->payment_type))
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle mr-2"></i>
+                                                Pembayaran via {{ ucfirst(str_replace('_', ' ', $pembayaran->payment_type)) }} (Midtrans)
+                                            </div>
+                                        @else
+                                            <div class="alert alert-secondary">
+                                                <i class="fas fa-image mr-2"></i>
+                                                Tidak ada bukti pembayaran
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -406,5 +409,18 @@ $(document).ready(function() {
         $('#formPenolakan').show();
     @endif
 });
+</script>
+@endpush
+
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chocolat@1.0.4/dist/css/chocolat.min.css">
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chocolat@1.0.4/dist/js/chocolat.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Chocolat(document.querySelectorAll('.chocolat-parent .chocolat-image'));
+    });
 </script>
 @endpush

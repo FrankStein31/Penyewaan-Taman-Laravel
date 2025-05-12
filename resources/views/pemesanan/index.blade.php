@@ -118,11 +118,7 @@
                                             {{ $p->waktu_selesai->format('d/m/Y H:i') }}
                                         </td>
                                         <td>
-                                            @if($p->total_jam >= 24)
-                                                {{ $p->total_hari }} hari
-                                            @else
-                                                {{ $p->total_jam }} jam
-                                            @endif
+                                            {{ $p->total_hari }} hari
                                         </td>
                                         <td>Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
                                         <td>

@@ -98,54 +98,77 @@ class PemesananController extends Controller
 
     public function create(Request $request)
     {
-        $taman = Taman::findOrFail($request->taman);
-        
-        // Cek apakah taman tersedia
-        if (!$taman->status) {
-            return redirect()->route('taman.index')
-                ->with('error', 'Maaf, taman ini sedang tidak tersedia');
+        if ($request->has('taman')) {
+            // Jika ada parameter taman di URL, cari taman tersebut
+            $tamanId = $request->taman;
+            $specificTaman = Taman::findOrFail($tamanId);
+            
+            // Cek apakah taman tersedia
+            if (!$specificTaman->status) {
+                return redirect()->route('taman.index')
+                    ->with('error', 'Maaf, taman ini sedang tidak tersedia');
+            }
+            
+            // Ambil semua taman tersedia untuk dropdown
+            $taman = Taman::where('status', true)->get();
+            
+            return view('pemesanan.create', compact('taman', 'specificTaman'));
+        } else {
+            // Tidak ada parameter taman, ambil semua taman yang tersedia
+            $taman = Taman::where('status', true)->get();
+            
+            return view('pemesanan.create', compact('taman'));
         }
-
-        return view('pemesanan.create', compact('taman'));
     }
 
     public function store(Request $request)
     {
         try {
-            $request->validate([
-                'taman_id' => 'required|exists:taman,id',
-                'tanggal_mulai' => 'required|date|after_or_equal:today',
-                'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-                'waktu_mulai' => 'required',
-                'waktu_selesai' => 'required',
-                'keperluan' => 'required|string',
-                'jumlah_orang' => 'required|integer|min:1'
-            ]);
+            // Validasi sesuai dengan tipe durasi
+            if ($request->durasi_tipe === 'satu_hari') {
+                $request->validate([
+                    'taman_id' => 'required|exists:taman,id',
+                    'tanggal_sewa' => 'required|date|after_or_equal:today',
+                    'keperluan' => 'required|string',
+                    'jumlah_orang' => 'required|integer|min:1'
+                ]);
+
+                // Set tanggal mulai dan selesai sama
+                $tanggal_mulai = Carbon::parse($request->tanggal_sewa);
+                $tanggal_selesai = Carbon::parse($request->tanggal_sewa);
+                $total_hari = 1;
+            } else {
+                $request->validate([
+                    'taman_id' => 'required|exists:taman,id',
+                    'tanggal_mulai' => 'required|date|after_or_equal:today',
+                    'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+                    'keperluan' => 'required|string',
+                    'jumlah_orang' => 'required|integer|min:1'
+                ]);
+
+                // Parse tanggal
+                $tanggal_mulai = Carbon::parse($request->tanggal_mulai);
+                $tanggal_selesai = Carbon::parse($request->tanggal_selesai);
+                
+                // Hitung total hari (inklusif)
+                $total_hari = $tanggal_mulai->diffInDays($tanggal_selesai) + 1;
+            }
 
             $taman = Taman::findOrFail($request->taman_id);
             
-            // Combine tanggal dan waktu
-            $waktu_mulai = Carbon::parse($request->tanggal_mulai . ' ' . $request->waktu_mulai);
-            $waktu_selesai = Carbon::parse($request->tanggal_selesai . ' ' . $request->waktu_selesai);
+            // Set waktu default (00:00)
+            $waktu_mulai = $tanggal_mulai->copy()->startOfDay();
+            $waktu_selesai = $tanggal_selesai->copy()->endOfDay();
             
-            // Hitung total jam
-            $total_jam = $waktu_mulai->diffInHours($waktu_selesai);
-            $total_hari = ceil($total_jam / 24); // Bulatkan ke atas untuk hari penuh
-            
-            // Hitung harga per jam (harga per hari dibagi 24)
-            $harga_per_jam = $taman->harga_per_hari / 24;
-            
-            // Hitung total harga berdasarkan jam
-            $total_harga = $harga_per_jam * $total_jam;
+            // Hitung total harga berdasarkan hari
+            $total_harga = $taman->harga_per_hari * $total_hari;
             
             // Debug log
             \Log::info('Pemesanan Calculation', [
                 'taman' => $taman->nama,
-                'waktu_mulai' => $waktu_mulai->format('Y-m-d H:i'),
-                'waktu_selesai' => $waktu_selesai->format('Y-m-d H:i'),
-                'total_jam' => $total_jam,
+                'tanggal_mulai' => $tanggal_mulai->format('Y-m-d'),
+                'tanggal_selesai' => $tanggal_selesai->format('Y-m-d'),
                 'total_hari' => $total_hari,
-                'harga_per_jam' => $harga_per_jam,
                 'total_harga' => $total_harga
             ]);
 
@@ -154,14 +177,14 @@ class PemesananController extends Controller
                 'kode' => 'PSN-' . date('Ymd') . '-' . strtoupper(Str::random(5)),
                 'user_id' => auth()->id(),
                 'taman_id' => $taman->id,
-                'tanggal_mulai' => $waktu_mulai->toDateString(),
-                'tanggal_selesai' => $waktu_selesai->toDateString(),
+                'tanggal_mulai' => $tanggal_mulai->toDateString(),
+                'tanggal_selesai' => $tanggal_selesai->toDateString(),
                 'waktu_mulai' => $waktu_mulai,
                 'waktu_selesai' => $waktu_selesai,
                 'keperluan' => $request->keperluan,
                 'jumlah_orang' => $request->jumlah_orang,
                 'total_hari' => $total_hari,
-                'total_jam' => $total_jam,
+                'total_jam' => 0, // Set total jam menjadi 0, karena tidak lagi menggunakan jam
                 'total_harga' => $total_harga,
                 'status' => 'pending'
             ]);

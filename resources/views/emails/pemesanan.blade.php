@@ -50,20 +50,12 @@
                 <tr>
                     <td style="padding: 8px;"><strong>Total Waktu:</strong></td>
                     <td style="padding: 8px;">
-                        @if($pemesanan->total_jam >= 24)
-                            {{ $pemesanan->total_hari }} hari
-                        @else
-                            {{ $pemesanan->total_jam }} jam
-                        @endif
+                        {{ $pemesanan->total_hari }} hari
                     </td>
                 </tr>
                 <tr>
                     <td style="padding: 8px;"><strong>Harga per Hari:</strong></td>
                     <td style="padding: 8px;">Rp {{ number_format($pemesanan->taman->harga_per_hari, 0, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px;"><strong>Harga per Jam:</strong></td>
-                    <td style="padding: 8px;">Rp {{ number_format($pemesanan->taman->harga_per_hari / 24, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px;"><strong>Total Bayar:</strong></td>
