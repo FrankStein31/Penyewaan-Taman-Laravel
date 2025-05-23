@@ -108,6 +108,32 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
+                    <h4>Taman Favorit Anda</h4>
+                </div>
+                <div class="card-body">
+                    @if(count($tamanFavorit) > 0)
+                        <div class="list-group">
+                            @foreach($tamanFavorit as $taman)
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ $taman->taman->nama }}</strong>
+                                    <p class="mb-0 text-muted small">{{ Str::limit($taman->taman->alamat, 50) }}</p>
+                                </div>
+                                <span class="badge badge-primary badge-pill">{{ $taman->total }} kali</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <p class="text-muted">Anda belum memiliki taman favorit</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        <!-- <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
                     <h4>Total Pengeluaran</h4>
                 </div>
                 <div class="card-body text-center">
@@ -117,7 +143,7 @@
                     <p class="text-muted">Total pengeluaran dari pemesanan yang sudah dibayar dan selesai</p>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <div class="row">
@@ -163,33 +189,6 @@
             </div>
         </div>
         @endif
-
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Taman Favorit Anda</h4>
-                </div>
-                <div class="card-body">
-                    @if(count($tamanFavorit) > 0)
-                        <div class="list-group">
-                            @foreach($tamanFavorit as $taman)
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ $taman->taman->nama }}</strong>
-                                    <p class="mb-0 text-muted small">{{ Str::limit($taman->taman->alamat, 50) }}</p>
-                                </div>
-                                <span class="badge badge-primary badge-pill">{{ $taman->total }} kali</span>
-                            </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-4">
-                            <p class="text-muted">Anda belum memiliki taman favorit</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
     </div>
     @endif
 </section>
