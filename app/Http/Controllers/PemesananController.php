@@ -78,7 +78,13 @@ class PemesananController extends Controller
         // Ambil data dengan urutan terbaru
         $pemesanan = $query->latest()->paginate(10);
 
-        return view('pemesanan.index', compact('pemesanan'));
+        // Hitung total pendapatan jika admin
+        $totalPendapatan = null;
+        if (auth()->user()->isAdmin()) {
+            $totalPendapatan = (clone $query)->sum('total_harga');
+        }
+
+        return view('pemesanan.index', compact('pemesanan', 'totalPendapatan'));
     }
 
     private function updateExpiredBookings()

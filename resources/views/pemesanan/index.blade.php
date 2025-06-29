@@ -21,6 +21,11 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    @if(auth()->user()->isAdmin())
+                        <div class="alert alert-info">
+                            <strong>Total Pendapatan (filter ini):</strong> Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
+                        </div>
+                    @endif
                     <form action="{{ route('pemesanan.index') }}" method="GET" class="mb-4">
                         <div class="row">
                             <div class="col-md-3">
