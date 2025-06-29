@@ -14,7 +14,8 @@ class Fasilitas extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nama_fasilitas'
+        'nama_fasilitas',
+        'foto'
     ];
 
     public function getRouteKeyName()

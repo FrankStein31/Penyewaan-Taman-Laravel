@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Fasilitas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class FasilitasController extends Controller
 {
@@ -30,10 +31,22 @@ class FasilitasController extends Controller
         }
 
         $request->validate([
-            'nama_fasilitas' => 'required|string|max:255|unique:fasilitas,nama_fasilitas'
+            'nama_fasilitas' => 'required|string|max:255|unique:fasilitas,nama_fasilitas',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        Fasilitas::create($request->all());
+        $data = [
+            'nama_fasilitas' => $request->nama_fasilitas
+        ];
+        
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $foto = $request->file('foto');
+            $fotoName = time() . '_' . $foto->getClientOriginalName();
+            $path = $foto->storeAs('fasilitas', $fotoName, 'public');
+            $data['foto'] = $path;
+        }
+
+        Fasilitas::create($data);
 
         return redirect()->route('fasilitas.index')
             ->with('success', 'Fasilitas berhasil ditambahkan');
@@ -59,10 +72,27 @@ class FasilitasController extends Controller
         $fasilitas = Fasilitas::findOrFail($id);
 
         $request->validate([
-            'nama_fasilitas' => 'required|string|max:255|unique:fasilitas,nama_fasilitas,' . $id . ',id_fasilitas'
+            'nama_fasilitas' => 'required|string|max:255|unique:fasilitas,nama_fasilitas,' . $id . ',id_fasilitas',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        $fasilitas->update($request->all());
+        $data = [
+            'nama_fasilitas' => $request->nama_fasilitas
+        ];
+        
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            // Hapus foto lama jika ada
+            if ($fasilitas->foto && Storage::disk('public')->exists($fasilitas->foto)) {
+                Storage::disk('public')->delete($fasilitas->foto);
+            }
+            
+            $foto = $request->file('foto');
+            $fotoName = time() . '_' . $foto->getClientOriginalName();
+            $path = $foto->storeAs('fasilitas', $fotoName, 'public');
+            $data['foto'] = $path;
+        }
+
+        $fasilitas->update($data);
 
         return redirect()->route('fasilitas.index')
             ->with('success', 'Fasilitas berhasil diperbarui');
@@ -76,6 +106,12 @@ class FasilitasController extends Controller
         }
 
         $fasilitas = Fasilitas::findOrFail($id);
+        
+        // Hapus foto jika ada
+        if ($fasilitas->foto && Storage::disk('public')->exists($fasilitas->foto)) {
+            Storage::disk('public')->delete($fasilitas->foto);
+        }
+        
         $fasilitas->delete();
 
         return redirect()->route('fasilitas.index')
