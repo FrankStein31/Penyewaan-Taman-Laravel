@@ -51,12 +51,12 @@
 
                             <div class="form-group">
                                 <label>Durasi Pemesanan</label>
-                                <div class="custom-control custom-radio">
+                                <!-- <div class="custom-control custom-radio">
                                     <input type="radio" id="durasi_satu_hari" name="durasi_tipe" value="satu_hari" class="custom-control-input" checked>
                                     <label class="custom-control-label" for="durasi_satu_hari">1 Hari</label>
-                                </div>
+                                </div> -->
                                 <div class="custom-control custom-radio">
-                                    <input type="radio" id="durasi_beberapa_hari" name="durasi_tipe" value="beberapa_hari" class="custom-control-input">
+                                    <input type="radio" id="durasi_beberapa_hari" name="durasi_tipe" value="beberapa_hari" class="custom-control-input" checked>
                                     <label class="custom-control-label" for="durasi_beberapa_hari">Lebih dari 1 Hari</label>
                                 </div>
                             </div>
