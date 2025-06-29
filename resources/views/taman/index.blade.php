@@ -3,343 +3,140 @@
 @section('title', auth()->user()->isAdmin() ? 'Manajemen Taman' : 'Daftar Taman')
 
 @section('content')
-<div class="section-body">
-    <div class="row">
-        <div class="col-12">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    <h4>{{ auth()->user()->isAdmin() ? 'Manajemen Taman' : 'Daftar Taman Tersedia' }}</h4>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>{{ __('Daftar Taman') }}</span>
                     @if(auth()->user()->isAdmin())
-                        <div class="card-header-action">
-                            <a href="{{ route('taman.create') }}" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Tambah Taman
-                            </a>
-                        </div>
+                        <a href="{{ route('taman.create') }}" class="btn btn-primary">
+                            {{ __('Tambah Taman') }}
+                        </a>
                     @endif
                 </div>
+
                 <div class="card-body">
                     @if(session('success'))
-                        <div class="alert alert-success alert-dismissible show fade">
-                            <div class="alert-body">
-                                <button class="close" data-dismiss="alert">
-                                    <span>&times;</span>
-                                </button>
-                                {{ session('success') }}
-                            </div>
+                        <div class="alert alert-success" role="alert">
+                            {{ session('success') }}
                         </div>
                     @endif
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <form id="perPageForm" action="{{ route('taman.index') }}" method="GET" class="form-inline">
-                                @foreach(request()->except(['page', 'per_page']) as $key => $value)
-                                    @if(is_array($value))
-                                        @foreach($value as $arrayValue)
-                                            <input type="hidden" name="{{ $key }}[]" value="{{ $arrayValue }}">
-                                        @endforeach
-                                    @else
-                                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                                    @endif
-                                @endforeach
-                                
-                                <label class="mr-2">Tampilkan</label>
-                                <select class="form-control form-control-sm" name="per_page" onchange="document.getElementById('perPageForm').submit()">
-                                    @foreach([5, 10, 25, 50] as $perPage)
-                                        <option value="{{ $perPage }}" {{ request('per_page', 10) == $perPage ? 'selected' : '' }}>
-                                            {{ $perPage }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <label class="ml-2">data per halaman</label>
-                            </form>
-                        </div>
-                    </div>
-
-                    @if(!auth()->user()->isAdmin())
-                    <form action="{{ route('taman.index') }}" method="GET" id="filterForm" style="background: #ffffff; padding: 25px; border-radius: 15px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); margin-bottom: 30px;">
-                        <div class="row">
-                            <!-- Search Name/Location -->
-                            <div class="col-md-4 mb-4">
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">
-                                        <i class="fas fa-search" style="margin-right: 8px; color: #3498db;"></i>Cari Nama/Lokasi
-                                    </label>
-                                    <input type="text" 
-                                        class="form-control" 
-                                        name="search" 
-                                        placeholder="Cari nama atau lokasi taman..." 
-                                        value="{{ request('search') }}"
-                                        style="padding: 12px; border: 1px solid #e1e8ee; border-radius: 8px; width: 100%; transition: all 0.3s; font-size: 14px;">
-                                </div>
-                            </div>
-
-                            <!-- Price Range -->
-                            <div class="col-md-4 mb-4">
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">
-                                        <i class="fas fa-tag" style="margin-right: 8px; color: #3498db;"></i>Range Biaya Retribusi Fasilitas
-                                    </label>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="number" 
-                                            class="form-control" 
-                                            name="harga_min" 
-                                            placeholder="Min" 
-                                            value="{{ request('harga_min') }}"
-                                            style="padding: 12px; border: 1px solid #e1e8ee; border-radius: 8px; width: 100%; transition: all 0.3s; font-size: 14px;">
-                                        <span style="color: #7f8c8d; font-weight: bold;">-</span>
-                                        <input type="number" 
-                                            class="form-control" 
-                                            name="harga_max" 
-                                            placeholder="Max" 
-                                            value="{{ request('harga_max') }}"
-                                            style="padding: 12px; border: 1px solid #e1e8ee; border-radius: 8px; width: 100%; transition: all 0.3s; font-size: 14px;">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Minimum Capacity -->
-                            <div class="col-md-4 mb-4">
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50;">
-                                        <i class="fas fa-users" style="margin-right: 8px; color: #3498db;"></i>Kapasitas Minimal
-                                    </label>
-                                    <input type="number" 
-                                        class="form-control" 
-                                        name="kapasitas_min" 
-                                        placeholder="Minimal kapasitas..." 
-                                        value="{{ request('kapasitas_min') }}"
-                                        style="padding: 12px; border: 1px solid #e1e8ee; border-radius: 8px; width: 100%; transition: all 0.3s; font-size: 14px;">
-                                </div>
-                            </div>
-
-                            <!-- Facilities -->
-                            <div class="col-md-12 mb-4">
-                                <div style="margin-bottom: 15px;">
-                                    <label style="display: block; margin-bottom: 15px; font-weight: 500; color: #2c3e50;">
-                                        <i class="fas fa-box" style="margin-right: 8px; color: #3498db;"></i>Fasilitas
-                                    </label>
-                                    <div class="row" style="margin: 0 -10px;">
-                                        @foreach($allFasilitas as $fasilitas)
-                                            <div class="col-md-3 mb-3">
-                                                <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; transition: all 0.3s;">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" 
-                                                            class="custom-control-input" 
-                                                            name="fasilitas[]"
-                                                            id="fasilitas-{{ $loop->index }}"
-                                                            value="{{ $fasilitas }}"
-                                                            {{ in_array($fasilitas, (array)request('fasilitas')) ? 'checked' : '' }}
-                                                            style="margin-right: 8px;">
-                                                        <label class="custom-control-label" 
-                                                            for="fasilitas-{{ $loop->index }}"
-                                                            style="color: #2c3e50; font-size: 14px;">
-                                                            {{ $fasilitas }}
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Buttons -->
-                            <div class="col-md-12">
-                                <div style="display: flex; gap: 15px;">
-                                    <button type="submit" 
-                                            style="padding: 12px 25px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; font-weight: 500;">
-                                        <i class="fas fa-search"></i> Cari
-                                    </button>
-                                    <a href="{{ route('taman.index') }}" 
-                                    style="padding: 12px 25px; background: #95a5a6; color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 500;">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                    @endif
-
-                    @if(auth()->user()->isAdmin())
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Gambar</th>
-                                        <th>Nama Taman</th>
-                                        <th>Lokasi</th>
-                                        <th>Kapasitas</th>
-                                        <th>Biaya Retribusi Fasilitas</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($taman as $t)
-                                        <tr>
-                                            <td>{{ $loop->iteration }}</td>
-                                            <td>
-                                                @if($t->gambar)
-                                                    <img src="{{ Storage::url($t->gambar) }}" 
-                                                         alt="{{ $t->nama }}"
-                                                         width="100"
-                                                         class="img-thumbnail">
-                                                @else
-                                                    <span class="badge badge-secondary">Tidak ada gambar</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ $t->nama }}</td>
-                                            <td>{{ $t->lokasi }}</td>
-                                            <td>{{ number_format($t->kapasitas) }} orang</td>
-                                            <td>Rp {{ number_format($t->harga_per_hari, 0, ',', '.') }}</td>
-                                            <td>
-                                                <span class="badge badge-{{ $t->status ? 'success' : 'danger' }}">
-                                                    {{ $t->status ? 'Tersedia' : 'Tidak Tersedia' }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <a href="{{ route('taman.show', $t->id) }}" 
-                                                   class="btn btn-info btn-sm">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ route('taman.edit', $t->id) }}" 
-                                                   class="btn btn-warning btn-sm">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form action="{{ route('taman.destroy', $t->id) }}" 
-                                                      method="POST" 
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus taman ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="8" class="text-center">Tidak ada data</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="row">
-                            @forelse($taman as $t)
-                                <div class="col-12 col-sm-6 col-md-4 col-lg-4 mb-4">
-                                    <div class="card h-100 card-taman">
-                                        <div class="gallery">
-                                            @if($t->gambar)
-                                                <div class="gallery-item" data-title="{{ $t->nama }}">
-                                                    <img src="{{ Storage::url($t->gambar) }}" 
-                                                         alt="{{ $t->nama }}"
-                                                         class="img-cover">
-                                                </div>
-                                            @else
-                                                <div class="gallery-item">
-                                                    <img src="{{ asset('assets/img/no-image.jpg') }}" 
-                                                         alt="No Image"
-                                                         class="img-cover">
-                                                </div>
-                                            @endif
-                                            @if($t->status)
-                                                <div class="status-badge badge-success">
-                                                    <i class="fas fa-check-circle"></i> Tersedia
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="card-body">
-                                            <h5 class="card-title text-dark">{{ $t->nama }}</h5>
-                                            <div class="card-info">
-                                                <div class="info-item">
-                                                    <i class="fas fa-map-marker-alt text-primary"></i>
-                                                    <span>{{ $t->lokasi }}</span>
-                                                </div>
-                                                <div class="info-item">
-                                                    <i class="fas fa-users text-info"></i>
-                                                    <span>{{ number_format($t->kapasitas) }} orang</span>
-                                                </div>
-                                                <div class="info-item">
-                                                    <i class="fas fa-money-bill text-success"></i>
-                                                    <span>Rp {{ number_format($t->harga_per_hari, 0, ',', '.') }}/hari</span>
-                                                </div>
-                                                <div class="info-item">
-                                                    <i class="fas fa-list-ul text-warning"></i>
-                                                    <span>{{ is_array($t->fasilitas) ? implode(', ', $t->fasilitas) : $t->fasilitas }}</span>
-                                                </div>
-                                            </div>
-                                            <div class="mt-3 text-center">
-                                                <a href="{{ route('taman.show', $t->id) }}" 
-                                                   class="btn btn-light btn-icon icon-left mr-2">
-                                                    <i class="fas fa-eye"></i> Detail
-                                                </a>
-                                                <a href="{{ route('pemesanan.create', ['taman' => $t->id]) }}" 
-                                                   class="btn btn-primary btn-icon icon-left">
-                                                    <i class="fas fa-calendar-plus"></i> Pesan
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="col-12">
-                                    <div class="alert alert-info text-center">
-                                        Tidak ada taman yang tersedia saat ini
-                                    </div>
-                                </div>
-                            @endforelse
+                    @if(session('error'))
+                        <div class="alert alert-danger" role="alert">
+                            {{ session('error') }}
                         </div>
                     @endif
 
                     <div class="row">
-                        <div class="col-lg-6">
-                            <p class="text-muted">Menampilkan {{ $taman->firstItem() ?? 0 }} sampai {{ $taman->lastItem() ?? 0 }} dari {{ $taman->total() }} data</p>
-                        </div>
-                        <div class="col-lg-6">
-                            <nav aria-label="Page navigation" class="float-right">
-                                @if ($taman->hasPages())
-                                    <ul class="pagination mb-0">
-                                        {{-- Previous Page Link --}}
-                                        @if ($taman->onFirstPage())
-                                            <li class="page-item disabled">
-                                                <span class="page-link">‹</span>
-                                            </li>
-                                        @else
-                                            <li class="page-item">
-                                                <a class="page-link" href="{{ $taman->previousPageUrl() }}" rel="prev">‹</a>
-                                            </li>
+                        @forelse($taman as $item)
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100">
+                                    <div id="carousel{{ $item->id }}" class="carousel slide" data-bs-ride="carousel">
+                                        @if($item->fotos->count() > 1)
+                                            <div class="carousel-indicators">
+                                                @foreach($item->fotos as $index => $foto)
+                                                    <button type="button" data-bs-target="#carousel{{ $item->id }}" data-bs-slide-to="{{ $index }}" class="{{ $index === 0 ? 'active' : '' }}" aria-current="{{ $index === 0 ? 'true' : 'false' }}" aria-label="Slide {{ $index + 1 }}"></button>
+                                                @endforeach
+                                            </div>
                                         @endif
 
-                                        @foreach ($taman->getUrlRange(1, $taman->lastPage()) as $page => $url)
-                                            @if ($page == $taman->currentPage())
-                                                <li class="page-item active">
-                                                    <span class="page-link">{{ $page }}</span>
-                                                </li>
-                                            @else
-                                                <li class="page-item">
-                                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                                                </li>
-                                            @endif
-                                        @endforeach
+                                        <div class="carousel-inner">
+                                            @forelse($item->fotos as $index => $foto)
+                                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                                    <img src="{{ asset('storage/' . $foto->foto) }}" class="d-block w-100" alt="Foto Taman" style="height: 200px; object-fit: cover;">
+                                                </div>
+                                            @empty
+                                                <div class="carousel-item active">
+                                                    <div class="d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                                                        <p class="text-muted">Tidak ada foto</p>
+                                                    </div>
+                                                </div>
+                                            @endforelse
+                                        </div>
 
-                                        {{-- Next Page Link --}}
-                                        @if ($taman->hasMorePages())
-                                            <li class="page-item">
-                                                <a class="page-link" href="{{ $taman->nextPageUrl() }}" rel="next">›</a>
-                                            </li>
-                                        @else
-                                            <li class="page-item disabled">
-                                                <span class="page-link">›</span>
-                                            </li>
+                                        @if($item->fotos->count() > 1)
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ $item->id }}" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Previous</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ $item->id }}" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Next</span>
+                                            </button>
                                         @endif
-                                    </ul>
-                                @endif
-                            </nav>
-                        </div>
+                                    </div>
+                                    
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ $item->nama }}</h5>
+                                        <p class="card-text text-muted mb-2">{{ $item->lokasi }}</p>
+                                        <p class="card-text">{{ Str::limit($item->deskripsi, 100) }}</p>
+                                        
+                                        <div class="mb-3">
+                                            <small class="text-muted">Fasilitas:</small>
+                                            <div class="mt-1">
+                                                @foreach($item->fasilitas as $fasilitas)
+                                                    <span class="badge bg-info me-1">{{ $fasilitas }}</span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <small class="text-muted">Kapasitas:</small>
+                                                <br>
+                                                <strong>{{ number_format($item->kapasitas) }} orang</strong>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted">Harga per Hari:</small>
+                                                <br>
+                                                <strong>Rp {{ number_format($item->harga_per_hari, 0, ',', '.') }}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-footer bg-transparent">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <a href="{{ route('taman.show', $item->id) }}" class="btn btn-info btn-sm">
+                                                    {{ __('Detail') }}
+                                                </a>
+                                                @if(auth()->user()->isAdmin())
+                                                    <a href="{{ route('taman.edit', $item->id) }}" class="btn btn-warning btn-sm">
+                                                        {{ __('Edit') }}
+                                                    </a>
+                                                    <form action="{{ route('taman.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus taman ini?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            {{ __('Hapus') }}
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <a href="{{ route('pemesanan.create', ['taman' => $item->id]) }}" class="btn btn-primary btn-sm">
+                                                        {{ __('Pesan') }}
+                                                    </a>
+                                                @endif
+                                            </div>
+                                            <span class="badge {{ $item->status ? 'bg-success' : 'bg-danger' }}">
+                                                {{ $item->status ? 'Tersedia' : 'Tidak Tersedia' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="col-12">
+                                <div class="alert alert-info" role="alert">
+                                    {{ __('Tidak ada data taman') }}
+                                </div>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-4">
+                        {{ $taman->links() }}
                     </div>
                 </div>
             </div>
@@ -459,6 +256,38 @@
             margin-bottom: 1rem;
         }
     }
+    .carousel {
+        position: relative;
+    }
+    .carousel-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    .carousel-indicators {
+        margin-bottom: 0;
+    }
+    .carousel-indicators [data-bs-target] {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.5);
+        border: none;
+    }
+    .carousel-indicators .active {
+        background-color: #fff;
+    }
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 15%;
+        opacity: 0.8;
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        padding: 1rem;
+    }
 </style>
 @endpush
 
@@ -467,6 +296,17 @@
 <script>
 $(document).ready(function() {
     $('.select2').select2();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Inisialisasi semua carousel
+    document.querySelectorAll('.carousel').forEach(function(carouselEl) {
+        new bootstrap.Carousel(carouselEl, {
+            interval: 5000,
+            wrap: true,
+            touch: true
+        });
+    });
 });
 </script>
 @endpush

@@ -117,6 +117,7 @@ class TamanController extends Controller
             'fasilitas' => 'required|array',
             'fasilitas.*' => 'required|string',
             'gambar' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'fotos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|boolean'
         ]);
 
@@ -128,7 +129,17 @@ class TamanController extends Controller
             $data['gambar'] = $path;
         }
 
-        Taman::create($data);
+        $taman = Taman::create($data);
+
+        // Upload foto-foto tambahan jika ada
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $foto) {
+                $path = $foto->storeAs('taman', time() . '_' . $foto->getClientOriginalName(), 'public');
+                $taman->fotos()->create([
+                    'foto' => $path
+                ]);
+            }
+        }
 
         return redirect()->route('taman.index')
             ->with('success', 'Taman berhasil ditambahkan');
@@ -165,6 +176,9 @@ class TamanController extends Controller
             'fasilitas' => 'required|array',
             'fasilitas.*' => 'required|string',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'fotos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'delete_fotos' => 'nullable|array',
+            'delete_fotos.*' => 'exists:taman_fotos,id',
             'status' => 'required|boolean'
         ]);
 
@@ -181,6 +195,27 @@ class TamanController extends Controller
             $data['gambar'] = $path;
         }
 
+        // Hapus foto yang dicentang untuk dihapus
+        if ($request->has('delete_fotos')) {
+            foreach ($request->delete_fotos as $fotoId) {
+                $foto = $taman->fotos()->find($fotoId);
+                if ($foto) {
+                    Storage::disk('public')->delete($foto->foto);
+                    $foto->delete();
+                }
+            }
+        }
+
+        // Upload foto-foto baru jika ada
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $foto) {
+                $path = $foto->storeAs('taman', time() . '_' . $foto->getClientOriginalName(), 'public');
+                $taman->fotos()->create([
+                    'foto' => $path
+                ]);
+            }
+        }
+
         $taman->update($data);
 
         return redirect()->route('taman.index')
@@ -194,10 +229,16 @@ class TamanController extends Controller
                 ->with('error', 'Anda tidak memiliki akses ke halaman tersebut');
         }
 
-        // Hapus gambar jika ada
+        // Hapus gambar utama jika ada
         if ($taman->gambar) {
             Storage::disk('public')->delete($taman->gambar);
         }
+
+        // Hapus semua foto terkait
+        foreach ($taman->fotos as $foto) {
+            Storage::disk('public')->delete($foto->foto);
+        }
+        $taman->fotos()->delete();
 
         $taman->delete();
 

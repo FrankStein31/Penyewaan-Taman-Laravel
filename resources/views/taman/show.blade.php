@@ -3,144 +3,119 @@
 @section('title', 'Detail Taman')
 
 @section('content')
-<div class="section-body">
-    <div class="row">
-        <div class="col-12">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    <h4>Detail Taman</h4>
-                    <div class="card-header-action">
-                        @if(auth()->user()->isAdmin())
-                            <a href="{{ route('taman.edit', $taman->id) }}" class="btn btn-warning">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                        @else
-                            <a href="{{ route('pemesanan.create', ['taman' => $taman->id]) }}" 
-                               class="btn btn-primary">
-                                <i class="fas fa-calendar-plus"></i> Pesan Sekarang
-                            </a>
-                        @endif
-                        <a href="{{ route('taman.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Kembali
-                        </a>
-                    </div>
-                </div>
+                <div class="card-header">{{ __('Detail Taman') }}</div>
+
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
-                            @if($taman->gambar)
-                                <div class="chocolat-parent mb-4">
-                                    <a href="{{ Storage::url($taman->gambar) }}" 
-                                       class="chocolat-image" 
-                                       title="{{ $taman->nama }}">
-                                        <img src="{{ Storage::url($taman->gambar) }}" 
-                                             alt="{{ $taman->nama }}"
-                                             class="img-fluid rounded">
-                                    </a>
-                                </div>
-                            @else
-                                <div class="alert alert-secondary">
-                                    Tidak ada gambar tersedia
-                                </div>
-                            @endif
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table">
-                                <tr>
-                                    <th style="width: 200px">Nama Taman</th>
-                                    <td>{{ $taman->nama }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Lokasi</th>
-                                    <td>{{ $taman->lokasi }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Kapasitas</th>
-                                    <td>{{ number_format($taman->kapasitas) }} orang</td>
-                                </tr>
-                                <tr>
-                                    <th>Biaya Retribusi Fasilitas</th>
-                                    <td>Rp {{ number_format($taman->harga_per_hari, 0, ',', '.') }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Status</th>
-                                    <td>
-                                        <span class="badge badge-{{ $taman->status ? 'success' : 'danger' }}">
-                                            {{ $taman->status ? 'Tersedia' : 'Tidak Tersedia' }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Fasilitas</th>
-                                    <td>
-                                        @foreach($taman->fasilitas as $fasilitas)
-                                            <span class="badge badge-info mr-1">{{ $fasilitas }}</span>
+                        <div class="col-md-12 mb-4">
+                            <div id="carouselTamanFotos" class="carousel slide" data-bs-ride="carousel">
+                                <!-- Indikator -->
+                                @if($taman->fotos->count() > 1)
+                                    <div class="carousel-indicators">
+                                        @foreach($taman->fotos as $index => $foto)
+                                            <button type="button" data-bs-target="#carouselTamanFotos" data-bs-slide-to="{{ $index }}" class="{{ $index === 0 ? 'active' : '' }}" aria-current="{{ $index === 0 ? 'true' : 'false' }}" aria-label="Slide {{ $index + 1 }}"></button>
                                         @endforeach
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                                    </div>
+                                @endif
 
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h6 class="mb-3">Deskripsi:</h6>
-                            <p class="text-justify">{{ $taman->deskripsi }}</p>
-                        </div>
-                    </div>
+                                <div class="carousel-inner">
+                                    @forelse($taman->fotos as $index => $foto)
+                                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                            <img src="{{ asset('storage/' . $foto->foto) }}" class="d-block w-100" alt="Foto Taman" style="height: 400px; object-fit: cover;">
+                                        </div>
+                                    @empty
+                                        <div class="carousel-item active">
+                                            <div class="d-flex align-items-center justify-content-center bg-light" style="height: 400px;">
+                                                <p class="text-muted">Tidak ada foto</p>
+                                            </div>
+                                        </div>
+                                    @endforelse
+                                </div>
 
-                    @if(auth()->user()->isAdmin())
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h6 class="mb-3">Riwayat Pemesanan:</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Pemesan</th>
-                                                <th>Tanggal Mulai</th>
-                                                <th>Tanggal Selesai</th>
-                                                <th>Status</th>
-                                                <th>Total Bayar</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse($taman->pemesanan()->latest()->get() as $pemesanan)
-                                                <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $pemesanan->user->name }}</td>
-                                                    <td>{{ $pemesanan->tanggal_mulai->format('d/m/Y') }}</td>
-                                                    <td>{{ $pemesanan->tanggal_selesai->format('d/m/Y') }}</td>
-                                                    <td>
-                                                        <span class="badge badge-{{ 
-                                                            $pemesanan->status === 'pending' ? 'warning' :
-                                                            ($pemesanan->status === 'disetujui' ? 'success' :
-                                                            ($pemesanan->status === 'ditolak' ? 'danger' : 'info'))
-                                                        }}">
-                                                            {{ ucfirst($pemesanan->status) }}
-                                                        </span>
-                                                    </td>
-                                                    <td>Rp {{ number_format($pemesanan->total_bayar, 0, ',', '.') }}</td>
-                                                    <td>
-                                                        <a href="{{ route('pemesanan.show', $pemesanan->id) }}" 
-                                                           class="btn btn-info btn-sm">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="7" class="text-center">Belum ada pemesanan</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
+                                @if($taman->fotos->count() > 1)
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselTamanFotos" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselTamanFotos" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <h2>{{ $taman->nama }}</h2>
+                            <p class="text-muted mb-4">{{ $taman->lokasi }}</p>
+
+                            <h5>Deskripsi</h5>
+                            <p>{{ $taman->deskripsi }}</p>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h5>Kapasitas</h5>
+                                    <p>{{ number_format($taman->kapasitas) }} orang</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Harga per Hari</h5>
+                                    <p>Rp {{ number_format($taman->harga_per_hari, 0, ',', '.') }}</p>
+                                </div>
+                            </div>
+
+                            <h5>Fasilitas</h5>
+                            <div class="row mb-4">
+                                @foreach($taman->fasilitas as $fasilitas)
+                                    <div class="col-md-4 mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            <span>{{ $fasilitas }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div class="mt-4">
+                                @if(auth()->check())
+                                    <a href="{{ route('pemesanan.create', ['taman' => $taman->id]) }}" class="btn btn-primary">
+                                        {{ __('Pesan Sekarang') }}
+                                    </a>
+                                @else
+                                    <a href="{{ route('login') }}" class="btn btn-primary">
+                                        {{ __('Login untuk Memesan') }}
+                                    </a>
+                                @endif
+                                <a href="{{ route('welcome') }}" class="btn btn-secondary">
+                                    {{ __('Kembali') }}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thumbnail Foto</h5>
+                                    <div class="row">
+                                        @forelse($taman->fotos as $index => $foto)
+                                            <div class="col-6 mb-3">
+                                                <a href="javascript:void(0)" class="thumbnail-link" data-bs-target="#carouselTamanFotos" data-bs-slide-to="{{ $index }}">
+                                                    <img src="{{ asset('storage/' . $foto->foto) }}" class="img-thumbnail" alt="Thumbnail" style="height: 100px; object-fit: cover;">
+                                                </a>
+                                            </div>
+                                        @empty
+                                            <div class="col-12">
+                                                <p class="text-muted">Tidak ada foto</p>
+                                            </div>
+                                        @endforelse
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -149,14 +124,74 @@
 @endsection
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chocolat@1.0.4/dist/css/chocolat.min.css">
+<style>
+.carousel {
+    position: relative;
+}
+.carousel-item img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+.carousel-indicators {
+    margin-bottom: 0;
+}
+.carousel-indicators [data-bs-target] {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+}
+.carousel-indicators .active {
+    background-color: #fff;
+}
+.carousel-control-prev,
+.carousel-control-next {
+    width: 10%;
+    opacity: 0.8;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    padding: 1.5rem;
+}
+.thumbnail-link {
+    cursor: pointer;
+    display: block;
+}
+.thumbnail-link img {
+    transition: opacity 0.3s;
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+.thumbnail-link:hover img {
+    opacity: 0.8;
+}
+</style>
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chocolat@1.0.4/dist/js/chocolat.min.js"></script>
 <script>
-$(document).ready(function() {
-    Chocolat(document.querySelectorAll('.chocolat-parent .chocolat-image'))
+document.addEventListener('DOMContentLoaded', function() {
+    // Inisialisasi carousel
+    var myCarousel = document.getElementById('carouselTamanFotos');
+    var carousel = new bootstrap.Carousel(myCarousel, {
+        interval: 5000,
+        wrap: true,
+        touch: true
+    });
+
+    // Event listener untuk thumbnail
+    document.querySelectorAll('.thumbnail-link').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var slideIndex = this.getAttribute('data-bs-slide-to');
+            carousel.to(parseInt(slideIndex));
+        });
+    });
 });
 </script>
-@endpush 
+@endpush

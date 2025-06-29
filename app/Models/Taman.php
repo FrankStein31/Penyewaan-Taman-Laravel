@@ -32,4 +32,9 @@ class Taman extends Model
     {
         return $this->hasMany(Pemesanan::class);
     }
+
+    public function fotos()
+    {
+        return $this->hasMany(TamanFoto::class);
+    }
 } 

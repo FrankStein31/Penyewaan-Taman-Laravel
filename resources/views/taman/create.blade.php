@@ -134,6 +134,17 @@
                         </div>
 
                         <div class="form-group row mb-4">
+                            <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Foto-foto Taman</label>
+                            <div class="col-sm-12 col-md-7">
+                                <input type="file" class="form-control @error('fotos.*') is-invalid @enderror" name="fotos[]" accept="image/*" multiple>
+                                <small class="text-muted">Anda dapat memilih beberapa foto sekaligus. Format yang didukung: JPG, JPEG, PNG, GIF. Maksimal 2MB per file.</small>
+                                @error('fotos.*')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-group row mb-4">
                             <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3"></label>
                             <div class="col-sm-12 col-md-7">
                                 <button type="submit" class="btn btn-primary">

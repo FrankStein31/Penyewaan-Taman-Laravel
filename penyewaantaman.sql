@@ -23,17 +23,18 @@ DROP TABLE IF EXISTS `fasilitas`;
 CREATE TABLE `fasilitas` (
   `id_fasilitas` int NOT NULL AUTO_INCREMENT,
   `nama_fasilitas` varchar(255) DEFAULT NULL,
+  `foto` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_fasilitas`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 /*Data for the table `fasilitas` */
 
-insert  into `fasilitas`(`id_fasilitas`,`nama_fasilitas`) values 
-(1,'Gajebo'),
-(2,'Air Mancur'),
-(3,'Toilet Umum'),
-(5,'Aula'),
-(6,'Air Minum');
+insert  into `fasilitas`(`id_fasilitas`,`nama_fasilitas`,`foto`) values 
+(1,'Gajebo','fasilitas/1751191889_back hitam 4.jpg'),
+(2,'Air Mancur','fasilitas/1751191810_back hitam.jpg'),
+(3,'Toilet Umum','fasilitas/1751191889_back hitam 4.jpg'),
+(5,'Aula','fasilitas/1751191881_back hitam.jpg'),
+(6,'Air Minum','fasilitas/1751191873_back hitam 3.jpg');
 
 /*Table structure for table `migrations` */
 
@@ -44,12 +45,14 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `migrations` */
 
 insert  into `migrations`(`id`,`migration`,`batch`) values 
-(1,'2025_05_11_231454_add_profile_photo_to_users_table',1);
+(1,'2025_05_11_231454_add_profile_photo_to_users_table',1),
+(2,'2025_06_29_095804_add_foto_to_fasilitas_table',2),
+(3,'2025_06_29_101456_create_taman_fotos_table',3);
 
 /*Table structure for table `pembayaran` */
 
@@ -141,7 +144,7 @@ CREATE TABLE `taman` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `taman` */
 
@@ -152,7 +155,30 @@ insert  into `taman`(`id`,`nama`,`deskripsi`,`lokasi`,`kapasitas`,`harga_per_har
 (5,'aaaaaaaaaa','aaaaaaaaaaaaa','aaaaaaaaaaaaaa',11111,900000.00,'[\"Air Mancur\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1747006977_informasi.png',1,'2025-01-05 02:52:30','2025-02-22 02:48:46'),
 (6,'bbbbbbbbbbbb','bbbbbbbbbbbbbbbbb','bbbbbbbbbbbbbbb',2000,800000.00,'[\"Aula\",\"Toilet Umum\"]','taman/1747006977_informasi.png',1,'2025-01-05 02:52:51','2025-02-22 02:48:35'),
 (7,'cccccccccccccc','cqweqwras','asasdqwdq',50,100000.00,'[\"Toilet Umum\"]','taman/1747006977_informasi.png',1,'2025-01-05 02:53:17','2025-03-02 02:02:34'),
-(9,'Jayabaya','Taman apa gitu','Kediri Kota',5000,250000.00,'[\"Air Mancur\",\"Air Minum\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1747006977_informasi.png',1,'2025-01-12 00:58:59','2025-05-12 00:12:40');
+(9,'Jayabaya','Taman apa gitu','Kediri Kota',5000,250000.00,'[\"Air Mancur\",\"Air Minum\",\"Aula\",\"Gajebo\",\"Toilet Umum\"]','taman/1747006977_informasi.png',1,'2025-01-12 00:58:59','2025-05-12 00:12:40'),
+(10,'Pet Parkaaa','wasd','Bandung',12,122222.00,'[\"Air Mancur\",\"Air Minum\",\"Gajebo\",\"Toilet Umum\"]','taman/1751194993_back hitam 2.jpg',1,'2025-06-29 11:03:14','2025-06-29 11:03:14');
+
+/*Table structure for table `taman_fotos` */
+
+DROP TABLE IF EXISTS `taman_fotos`;
+
+CREATE TABLE `taman_fotos` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `taman_id` bigint unsigned NOT NULL,
+  `foto` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `taman_fotos_taman_id_foreign` (`taman_id`),
+  CONSTRAINT `taman_fotos_taman_id_foreign` FOREIGN KEY (`taman_id`) REFERENCES `taman` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Data for the table `taman_fotos` */
+
+insert  into `taman_fotos`(`id`,`taman_id`,`foto`,`created_at`,`updated_at`) values 
+(1,9,'taman/1751192650_6861144aaa88e_back hitam 2.jpg','2025-06-29 10:24:10','2025-06-29 10:24:10'),
+(2,10,'taman/1751194994_back hitam 3.jpg','2025-06-29 11:03:14','2025-06-29 11:03:14'),
+(3,10,'taman/1751195176_back hitam 4.jpg','2025-06-29 11:06:16','2025-06-29 11:06:16');
 
 /*Table structure for table `users` */
 
