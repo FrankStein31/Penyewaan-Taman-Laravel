@@ -90,6 +90,25 @@
                                 @endforeach
                             </div>
 
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6 class="mb-2">Tanggal Sudah Dipesan:</h6>
+                                    <ul class="mb-0" style="font-size: 1em;">
+                                        @forelse($bookedDates as $b)
+                                            <li>
+                                                @if($b->tanggal_mulai == $b->tanggal_selesai)
+                                                    {{ date('d-m-Y', strtotime($b->tanggal_mulai)) }}
+                                                @else
+                                                    {{ date('d-m-Y', strtotime($b->tanggal_mulai)) }} s/d {{ date('d-m-Y', strtotime($b->tanggal_selesai)) }}
+                                                @endif
+                                            </li>
+                                        @empty
+                                            <li class="text-success">Belum ada yang dipesan</li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
+
                             <div class="mt-4">
                                 @if(auth()->check())
                                     <a href="{{ route('pemesanan.create', ['taman' => $taman->id]) }}" class="btn btn-primary">

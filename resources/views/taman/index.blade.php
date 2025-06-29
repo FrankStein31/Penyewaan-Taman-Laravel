@@ -10,17 +10,17 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>{{ __('Daftar Taman') }}</span>
                     @if(auth()->user()->isAdmin())
-                        <a href="{{ route('taman.create') }}" class="btn btn-primary">
+                            <a href="{{ route('taman.create') }}" class="btn btn-primary">
                             {{ __('Tambah Taman') }}
-                        </a>
+                            </a>
                     @endif
                 </div>
 
                 <div class="card-body">
                     @if(session('success'))
                         <div class="alert alert-success" role="alert">
-                            {{ session('success') }}
-                        </div>
+                                {{ session('success') }}
+                            </div>
                     @endif
 
                     @if(session('error'))
@@ -38,9 +38,9 @@
                                             <div class="carousel-indicators">
                                                 @foreach($item->fotos as $index => $foto)
                                                     <button type="button" data-bs-target="#carousel{{ $item->id }}" data-bs-slide-to="{{ $index }}" class="{{ $index === 0 ? 'active' : '' }}" aria-current="{{ $index === 0 ? 'true' : 'false' }}" aria-label="Slide {{ $index + 1 }}"></button>
-                                                @endforeach
+                                        @endforeach
                                             </div>
-                                        @endif
+                                    @endif
 
                                         <div class="carousel-inner">
                                             @forelse($item->fotos as $index => $foto)
@@ -51,10 +51,10 @@
                                                 <div class="carousel-item active">
                                                     <div class="d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
                                                         <p class="text-muted">Tidak ada foto</p>
-                                                    </div>
-                                                </div>
+                        </div>
+                    </div>
                                             @endforelse
-                                        </div>
+                            </div>
 
                                         @if($item->fotos->count() > 1)
                                             <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ $item->id }}" data-bs-slide="prev">
@@ -79,9 +79,26 @@
                                                 @foreach($item->fasilitas as $fasilitas)
                                                     <span class="badge bg-info me-1">{{ $fasilitas }}</span>
                                                 @endforeach
-                                            </div>
-                                        </div>
-                                        
+                                </div>
+                            </div>
+
+                                        <div class="mb-3">
+                                            <small class="text-muted">Tanggal Sudah Dipesan:</small>
+                                            <ul class="mb-0" style="font-size: 0.95em;">
+                                                @forelse(($bookedDates[$item->id] ?? []) as $b)
+                                                    <li>
+                                                        @if($b->tanggal_mulai == $b->tanggal_selesai)
+                                                            {{ date('d-m-Y', strtotime($b->tanggal_mulai)) }}
+                                                        @else
+                                                            {{ date('d-m-Y', strtotime($b->tanggal_mulai)) }} s/d {{ date('d-m-Y', strtotime($b->tanggal_selesai)) }}
+                                                        @endif
+                                                    </li>
+                                                @empty
+                                                    <li class="text-success">Belum ada yang dipesan</li>
+                                                @endforelse
+                                            </ul>
+                            </div>
+
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
                                                 <small class="text-muted">Kapasitas:</small>
@@ -92,10 +109,10 @@
                                                 <small class="text-muted">Harga per Hari:</small>
                                                 <br>
                                                 <strong>Rp {{ number_format($item->harga_per_hari, 0, ',', '.') }}</strong>
-                                            </div>
-                                        </div>
                                     </div>
-                                    
+                                </div>
+                            </div>
+
                                     <div class="card-footer bg-transparent">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
@@ -105,35 +122,35 @@
                                                 @if(auth()->user()->isAdmin())
                                                     <a href="{{ route('taman.edit', $item->id) }}" class="btn btn-warning btn-sm">
                                                         {{ __('Edit') }}
-                                                    </a>
+                                                </a>
                                                     <form action="{{ route('taman.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus taman ini?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm">
                                                             {{ __('Hapus') }}
-                                                        </button>
-                                                    </form>
-                                                @else
+                                                    </button>
+                                                </form>
+                    @else
                                                     <a href="{{ route('pemesanan.create', ['taman' => $item->id]) }}" class="btn btn-primary btn-sm">
                                                         {{ __('Pesan') }}
                                                     </a>
-                                                @endif
+                                            @endif
                                             </div>
-                                            <span class="badge {{ $item->status ? 'bg-success' : 'bg-danger' }}">
-                                                {{ $item->status ? 'Tersedia' : 'Tidak Tersedia' }}
+                                            <span class="badge {{ $item->status ? 'bg-success' : 'bg-warning' }}">
+                                                {{ $item->status ? 'Tersedia' : 'Tersedia dan Sedang Dipesan' }}
                                             </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        @empty
-                            <div class="col-12">
+                            @empty
+                                <div class="col-12">
                                 <div class="alert alert-info" role="alert">
                                     {{ __('Tidak ada data taman') }}
+                                    </div>
                                 </div>
-                            </div>
-                        @endforelse
-                    </div>
+                            @endforelse
+                        </div>
 
                     <div class="d-flex justify-content-center mt-4">
                         {{ $taman->links() }}

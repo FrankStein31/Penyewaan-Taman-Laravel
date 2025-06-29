@@ -98,27 +98,18 @@ class PemesananController extends Controller
 
     public function create(Request $request)
     {
-        if ($request->has('taman')) {
-            // Jika ada parameter taman di URL, cari taman tersebut
-            $tamanId = $request->taman;
-            $specificTaman = Taman::findOrFail($tamanId);
-            
-            // Cek apakah taman tersedia
-            if (!$specificTaman->status) {
-                return redirect()->route('taman.index')
-                    ->with('error', 'Maaf, taman ini sedang tidak tersedia');
-            }
-            
-            // Ambil semua taman tersedia untuk dropdown
-            $taman = Taman::where('status', true)->get();
-            
-            return view('pemesanan.create', compact('taman', 'specificTaman'));
-        } else {
-            // Tidak ada parameter taman, ambil semua taman yang tersedia
-            $taman = Taman::where('status', true)->get();
-            
-            return view('pemesanan.create', compact('taman'));
+        $taman = Taman::all();
+        $bookedDates = [];
+        foreach ($taman as $t) {
+            $bookedDates[$t->id] = Pemesanan::where('taman_id', $t->id)
+                ->whereNotIn('status', ['selesai', 'ditolak'])
+                ->get(['tanggal_mulai', 'tanggal_selesai']);
         }
+        $specificTaman = null;
+        if ($request->has('taman')) {
+            $specificTaman = Taman::findOrFail($request->taman);
+        }
+        return view('pemesanan.create', compact('taman', 'specificTaman', 'bookedDates'));
     }
 
     public function store(Request $request)
@@ -128,14 +119,13 @@ class PemesananController extends Controller
             if ($request->durasi_tipe === 'satu_hari') {
                 $request->validate([
                     'taman_id' => 'required|exists:taman,id',
-                    'tanggal_sewa' => 'required|date|after_or_equal:today',
+                    'tanggal_mulai' => 'required|date|after_or_equal:today',
                     'keperluan' => 'required|string',
                     'jumlah_orang' => 'required|integer|min:1'
                 ]);
 
-                // Set tanggal mulai dan selesai sama
-                $tanggal_mulai = Carbon::parse($request->tanggal_sewa);
-                $tanggal_selesai = Carbon::parse($request->tanggal_sewa);
+                $tanggal_mulai = Carbon::parse($request->tanggal_mulai);
+                $tanggal_selesai = Carbon::parse($request->tanggal_mulai);
                 $total_hari = 1;
             } else {
                 $request->validate([
@@ -146,12 +136,35 @@ class PemesananController extends Controller
                     'jumlah_orang' => 'required|integer|min:1'
                 ]);
 
-                // Parse tanggal
                 $tanggal_mulai = Carbon::parse($request->tanggal_mulai);
                 $tanggal_selesai = Carbon::parse($request->tanggal_selesai);
-                
-                // Hitung total hari (inklusif)
                 $total_hari = $tanggal_mulai->diffInDays($tanggal_selesai) + 1;
+            }
+
+            // Validasi bentrok tanggal
+            $bentrok = Pemesanan::where('taman_id', $request->taman_id)
+                ->whereNotIn('status', ['selesai', 'ditolak'])
+                ->where(function($q) use ($tanggal_mulai, $tanggal_selesai) {
+                    $q->where(function($q2) use ($tanggal_mulai, $tanggal_selesai) {
+                        $q2->whereNotNull('tanggal_mulai')
+                            ->whereBetween('tanggal_mulai', [$tanggal_mulai->toDateString(), $tanggal_selesai->toDateString()]);
+                    })
+                    ->orWhere(function($q2) use ($tanggal_mulai, $tanggal_selesai) {
+                        $q2->whereNotNull('tanggal_selesai')
+                            ->whereNotNull('tanggal_mulai')
+                            ->where(function($q3) use ($tanggal_mulai, $tanggal_selesai) {
+                                $q3->whereBetween('tanggal_mulai', [$tanggal_mulai->toDateString(), $tanggal_selesai->toDateString()])
+                                    ->orWhereBetween('tanggal_selesai', [$tanggal_mulai->toDateString(), $tanggal_selesai->toDateString()])
+                                    ->orWhere(function($q4) use ($tanggal_mulai, $tanggal_selesai) {
+                                        $q4->where('tanggal_mulai', '<=', $tanggal_mulai->toDateString())
+                                            ->where('tanggal_selesai', '>=', $tanggal_selesai->toDateString());
+                                    });
+                            });
+                    });
+                })
+                ->exists();
+            if ($bentrok) {
+                return back()->withInput()->with('error', 'Tanggal yang dipilih sudah dipesan. Silakan pilih tanggal lain!');
             }
 
             $taman = Taman::findOrFail($request->taman_id);

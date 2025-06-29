@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Taman;
 use App\Models\Fasilitas;
+use App\Models\Pemesanan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,11 +48,6 @@ class TamanController extends Controller
             }
         }
 
-        // Filter non-admin hanya melihat yang tersedia
-        if (!auth()->user()->isAdmin()) {
-            $query->where('status', true);
-        }
-
         // Sorting
         $sort = $request->input('sort', 'latest');
         switch ($sort) {
@@ -84,11 +80,19 @@ class TamanController extends Controller
         $taman = $query->paginate($perPage)->withQueryString();
         $allFasilitas = Fasilitas::orderBy('nama_fasilitas')->pluck('nama_fasilitas');
 
-        if ($request->ajax()) {
-            return view('taman.list', compact('taman'))->render();
+        // Ambil tanggal booked untuk setiap taman
+        $bookedDates = [];
+        foreach ($taman as $t) {
+            $bookedDates[$t->id] = Pemesanan::where('taman_id', $t->id)
+                ->whereNotIn('status', ['selesai', 'ditolak'])
+                ->get(['tanggal_mulai', 'tanggal_selesai']);
         }
 
-        return view('taman.index', compact('taman', 'allFasilitas'));
+        if ($request->ajax()) {
+            return view('taman.list', compact('taman', 'bookedDates'))->render();
+        }
+
+        return view('taman.index', compact('taman', 'allFasilitas', 'bookedDates'));
     }
 
     public function create()
@@ -147,9 +151,11 @@ class TamanController extends Controller
 
     public function show(Taman $taman)
     {
-        // Ambil data fasilitas yang dipilih dengan fotonya
         $fasilitas = Fasilitas::whereIn('nama_fasilitas', $taman->fasilitas)->get();
-        return view('taman.show', compact('taman', 'fasilitas'));
+        $bookedDates = Pemesanan::where('taman_id', $taman->id)
+            ->whereNotIn('status', ['selesai', 'ditolak'])
+            ->get(['tanggal_mulai', 'tanggal_selesai']);
+        return view('taman.show', compact('taman', 'fasilitas', 'bookedDates'));
     }
 
     public function edit(Taman $taman)

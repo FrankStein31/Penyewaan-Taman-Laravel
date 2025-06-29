@@ -27,6 +27,10 @@
                             </div>
                         @endif
 
+                        @php
+                            $jsonBookedDates = json_encode($bookedDates);
+                        @endphp
+
                         <form action="{{ route('pemesanan.store') }}" method="POST">
                             @csrf
                             <div class="form-group">
@@ -49,6 +53,11 @@
                                 @enderror
                             </div>
 
+                            <div class="form-group" id="booked-dates-info" style="display:none;">
+                                <label>Tanggal Sudah Dipesan:</label>
+                                <ul id="booked-dates-list" style="font-size:0.95em;"></ul>
+                            </div>
+
                             <div class="form-group">
                                 <label>Durasi Pemesanan</label>
                                 <!-- <div class="custom-control custom-radio">
@@ -64,9 +73,9 @@
                             <!-- Form untuk 1 hari -->
                             <div id="form_satu_hari">
                                 <div class="form-group">
-                                    <label for="tanggal_sewa">Tanggal Sewa</label>
-                                    <input type="date" name="tanggal_sewa" id="tanggal_sewa" class="form-control @error('tanggal_sewa') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_sewa') }}">
-                                    @error('tanggal_sewa')
+                                    <label for="tanggal_mulai_satu">Tanggal Sewa</label>
+                                    <input type="date" name="tanggal_mulai" id="tanggal_mulai_satu" class="form-control @error('tanggal_mulai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_mulai') }}">
+                                    @error('tanggal_mulai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
@@ -79,8 +88,8 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="tanggal_mulai">Tanggal Mulai</label>
-                                            <input type="date" name="tanggal_mulai" id="tanggal_mulai" class="form-control @error('tanggal_mulai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_mulai') }}">
+                                            <label for="tanggal_mulai_range">Tanggal Mulai</label>
+                                            <input type="date" name="tanggal_mulai" id="tanggal_mulai_range" class="form-control @error('tanggal_mulai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_mulai') }}">
                                             @error('tanggal_mulai')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -90,8 +99,8 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="tanggal_selesai">Tanggal Selesai</label>
-                                            <input type="date" name="tanggal_selesai" id="tanggal_selesai" class="form-control @error('tanggal_selesai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_selesai') }}">
+                                            <label for="tanggal_selesai_range">Tanggal Selesai</label>
+                                            <input type="date" name="tanggal_selesai" id="tanggal_selesai_range" class="form-control @error('tanggal_selesai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_selesai') }}">
                                             @error('tanggal_selesai')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -167,10 +176,58 @@
 
 @push('scripts')
 <script>
+    const bookedDates = {!! $jsonBookedDates !!};
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('id-ID');
+    }
+    function showBookedDates(tamanId) {
+        const list = document.getElementById('booked-dates-list');
+        list.innerHTML = '';
+        if (bookedDates[tamanId] && bookedDates[tamanId].length > 0) {
+            bookedDates[tamanId].forEach(b => {
+                if (b.tanggal_mulai === b.tanggal_selesai) {
+                    list.innerHTML += `<li>${formatDate(b.tanggal_mulai)}</li>`;
+                } else {
+                    list.innerHTML += `<li>${formatDate(b.tanggal_mulai)} s/d ${formatDate(b.tanggal_selesai)}</li>`;
+                }
+            });
+            document.getElementById('booked-dates-info').style.display = '';
+        } else {
+            list.innerHTML = '<li class="text-success">Belum ada yang dipesan</li>';
+            document.getElementById('booked-dates-info').style.display = '';
+        }
+    }
+    function isDateBooked(tamanId, tanggalMulai, tanggalSelesai) {
+        if (!bookedDates[tamanId]) return false;
+        const start = new Date(tanggalMulai);
+        const end = new Date(tanggalSelesai);
+        return bookedDates[tamanId].some(b => {
+            const tglMulai = new Date(b.tanggal_mulai);
+            const tglSelesai = new Date(b.tanggal_selesai);
+            return (start <= tglSelesai && end >= tglMulai);
+        });
+    }
+    function getTanggalMulai() {
+        if ($('#durasi_satu_hari').is(':checked')) {
+            return $('#tanggal_mulai_satu').val();
+        } else {
+            return $('#tanggal_mulai_range').val();
+        }
+    }
+    function getTanggalSelesai() {
+        if ($('#durasi_satu_hari').is(':checked')) {
+            return $('#tanggal_mulai_satu').val();
+        } else {
+            return $('#tanggal_selesai_range').val();
+        }
+    }
     $(document).ready(function() {
         // Toggling durasi form
         $('input[name="durasi_tipe"]').change(function() {
             toggleDurasiForm();
+            hitungTotalHari();
+            hitungTotal();
         });
 
         function toggleDurasiForm() {
@@ -191,31 +248,28 @@
 
         // Update harga ketika pilihan taman berubah
         $('#taman_id').change(function() {
+            showBookedDates(this.value);
             hitungTotal();
         });
 
         // Hitung total hari
         function hitungTotalHari() {
             let totalHari = 0;
-            
+            const mulai = getTanggalMulai();
+            const selesai = getTanggalSelesai();
             if ($('#durasi_satu_hari').is(':checked')) {
-                // Jika 1 hari, totalHari = 1
-                totalHari = 1;
+                totalHari = mulai ? 1 : 0;
             } else {
-                // Jika lebih dari 1 hari, hitung berdasarkan range tanggal
-                const tanggalMulai = new Date($('#tanggal_mulai').val());
-                const tanggalSelesai = new Date($('#tanggal_selesai').val());
-                
+                const tanggalMulai = new Date(mulai);
+                const tanggalSelesai = new Date(selesai);
                 if (!isNaN(tanggalMulai) && !isNaN(tanggalSelesai) && tanggalMulai <= tanggalSelesai) {
                     const diffTime = Math.abs(tanggalSelesai - tanggalMulai);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    totalHari = diffDays + 1; // Inklusif, termasuk hari mulai dan selesai
+                    totalHari = diffDays + 1;
                 }
             }
-            
             $('#total_hari').val(totalHari);
             hitungTotal();
-            
             return totalHari;
         }
 
@@ -225,15 +279,39 @@
             $('#harga_per_hari').val(formatRupiah(hargaPerHari));
             
             const totalHari = parseInt($('#total_hari').val()) || 0;
-            const totalBayar = hargaPerHari * totalHari;
+            const jumlahOrang = parseInt($('#jumlah_orang').val()) || 1;
+            const totalBayar = hargaPerHari * totalHari * jumlahOrang;
             
             $('#total_pembayaran').val(formatRupiah(totalBayar));
         }
 
         // Event listener untuk perubahan tanggal
-        $('#tanggal_sewa, #tanggal_mulai, #tanggal_selesai').change(function() {
+        $('#tanggal_mulai_satu, #tanggal_mulai_range, #tanggal_selesai_range').change(function() {
             hitungTotalHari();
+            hitungTotal();
         });
+
+        // Event listener untuk perubahan jumlah orang
+        $('#jumlah_orang').change(function() {
+            hitungTotal();
+        });
+
+        // Validasi tanggal bentrok saat submit
+        $('form').on('submit', function(e) {
+            const tamanId = $('#taman_id').val();
+            let mulai = getTanggalMulai();
+            let selesai = getTanggalSelesai();
+            if (tamanId && mulai && selesai && isDateBooked(tamanId, mulai, selesai)) {
+                alert('Tanggal yang dipilih sudah dipesan. Silakan pilih tanggal lain!');
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Tampilkan tanggal booked saat load jika sudah ada pilihan
+        if ($('#taman_id').val()) {
+            showBookedDates($('#taman_id').val());
+        }
 
         // Inisialisasi
         $('#taman_id').trigger('change');
