@@ -270,54 +270,80 @@
             border: none;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
             transition: all 0.3s ease;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .taman-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
         }
         
-        .taman-img {
-            height: 220px;
-            background-size: cover;
-            background-position: center;
-            position: relative;
+        .taman-card .card-img-top {
+            height: 200px;
+            object-fit: cover;
         }
         
-        .location-badge, .capacity-badge {
-            position: absolute;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+        .taman-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .taman-card .card-title {
+            font-size: 1.25rem;
             font-weight: 600;
-            color: white;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        
-        .location-badge {
-            top: 15px;
-            left: 15px;
-        }
-        
-        .capacity-badge {
-            top: 15px;
-            right: 15px;
-        }
-        
-        .taman-title {
-            font-weight: 600;
-            font-size: 20px;
-            margin-bottom: 10px;
+            margin-bottom: 0.75rem;
             color: var(--dark-color);
         }
         
-        .taman-price {
-            font-weight: 700;
-            font-size: 18px;
+        .taman-card .card-text {
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        
+        .taman-card .price {
+            font-size: 1.25rem;
+            font-weight: 600;
             color: var(--primary-color);
+        }
+        
+        .taman-card .location {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .taman-card .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 2;
+        }
+        
+        .taman-card .status-tersedia {
+            background-color: rgba(40, 167, 69, 0.9);
+            color: white;
+        }
+        
+        .taman-card .status-tidak-tersedia {
+            background-color: rgba(220, 53, 69, 0.9);
+            color: white;
+        }
+        
+        .taman-card .total-pemesanan {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            z-index: 2;
         }
         
         /* Footer */
@@ -526,72 +552,48 @@
         </div>
     </section>
 
-    <!-- Taman Section -->
-    <section class="taman-section" id="taman">
+    <!-- Taman Populer Section -->
+    <section class="taman-populer py-5">
         <div class="container">
-            <div class="section-title">
-                <h2>Taman Populer</h2>
-                <p>Temukan taman yang paling diminati oleh pelanggan kami</p>
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <h2 class="section-title">Taman Populer</h2>
+                    <p class="section-description">Temukan taman yang paling banyak diminati</p>
+                </div>
             </div>
-            
             <div class="row">
-                @foreach($tamanPopuler as $taman)
-                <div class="col-md-4">
-                    <div class="card taman-card">
-                        @if($taman->gambar)
-                            <div class="taman-img" style="background-image: url('{{ asset('storage/' . $taman->gambar) }}')">
-                                <div class="capacity-badge"><i class="fas fa-users mr-1"></i>{{ $taman->kapasitas ?? '200' }} Orang</div>
-                            </div>
-                        @else
-                            <div class="taman-img bg-secondary d-flex align-items-center justify-content-center">
-                                <i class="fas fa-image fa-3x text-white"></i>
-                            </div>
-                        @endif
-                        <div class="card-body">
-                            <h5 class="taman-title">{{ $taman->nama }}</h5>
-                            <p class="card-text">{{ Str::limit($taman->deskripsi, 100) }}</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="taman-price">{{ 'Rp ' . number_format($taman->harga_per_hari, 0, ',', '.') }}/hari</div>
-                                <button class="btn btn-primary detail-btn" data-id="{{ $taman->id }}">Detail</button>
-                            </div>
-                            
-                            <div class="taman-detail" id="detail-{{ $taman->id }}">
-                                <div class="detail-item">
-                                    <strong>Nama Taman:</strong> {{ $taman->nama }}
+                @forelse($tamanPopuler as $taman)
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card taman-card">
+                            <!-- <div class="status-badge {{ $taman->status ? 'status-tersedia' : 'status-tidak-tersedia' }}">
+                                {{ $taman->status_text }}
+                            </div> -->
+                            @if(isset($taman->total_pemesanan) && $taman->total_pemesanan > 0)
+                                <div class="total-pemesanan">
+                                    <i class="fas fa-star"></i> {{ $taman->total_pemesanan }} Pemesanan
                                 </div>
-                                <div class="detail-item">
-                                    <strong>Lokasi:</strong> {{ $taman->lokasi ?? 'Jakarta' }}
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Kapasitas:</strong> {{ $taman->kapasitas ?? '200' }} Orang
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Ukuran:</strong> {{ $taman->ukuran ?? '500' }} m²
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Harga:</strong> {{ 'Rp ' . number_format($taman->harga_per_hari, 0, ',', '.') }}/hari
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Fasilitas:</strong> 
-                                    @if(is_array($taman->fasilitas))
-                                        {{ implode(', ', $taman->fasilitas) }}
-                                    @else
-                                        {{ $taman->fasilitas ?? 'Free WiFi, Parkir, Toilet' }}
-                                    @endif
-                                </div>
-                                <div class="detail-item mt-3">
-                                    <strong>Deskripsi:</strong>
-                                    <p>{{ $taman->deskripsi }}</p>
+                            @endif
+                            <img src="{{ asset('storage/' . $taman->gambar) }}" class="card-img-top" alt="{{ $taman->nama }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ $taman->nama }}</h5>
+                                <p class="location mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ $taman->lokasi }}
+                                </p>
+                                <p class="card-text">{{ Str::limit($taman->deskripsi, 100) }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="price">Rp {{ number_format($taman->harga_per_hari, 0, ',', '.') }}</div>
+                                    <a href="{{ route('taman.show', $taman->id) }}" class="btn btn-primary btn-sm">Lihat Detail</a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                @endforeach
-            </div>
-            
-            <div class="text-center mt-5">
-                <a href="{{ route('taman.index') }}" class="btn btn-primary btn-lg">Lihat Semua Taman</a>
+                @empty
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            Belum ada taman yang tersedia
+                        </div>
+                    </div>
+                @endforelse
             </div>
         </div>
     </section>
