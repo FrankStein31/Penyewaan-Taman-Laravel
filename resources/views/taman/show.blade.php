@@ -69,11 +69,22 @@
 
                             <h5>Fasilitas</h5>
                             <div class="row mb-4">
-                                @foreach($taman->fasilitas as $fasilitas)
-                                    <div class="col-md-4 mb-2">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-check-circle text-success me-2"></i>
-                                            <span>{{ $fasilitas }}</span>
+                                @foreach($fasilitas as $f)
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card card-fasilitas h-100">
+                                            @if($f->foto)
+                                                <img src="{{ asset('storage/' . $f->foto) }}" class="card-img-top" alt="{{ $f->nama_fasilitas }}">
+                                            @else
+                                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                                                    <i class="fas fa-image text-muted fa-3x"></i>
+                                                </div>
+                                            @endif
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-check-circle me-2"></i>
+                                                    <h6 class="card-title mb-0">{{ $f->nama_fasilitas }}</h6>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 @endforeach
@@ -169,6 +180,32 @@
 }
 .thumbnail-link:hover img {
     opacity: 0.8;
+}
+
+/* Style untuk card fasilitas */
+.card-fasilitas {
+    transition: transform 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.card-fasilitas:hover {
+    transform: translateY(-5px);
+}
+.card-fasilitas .card-img-top {
+    height: 150px;
+    object-fit: cover;
+}
+.card-fasilitas .card-body {
+    padding: 1rem;
+}
+.card-fasilitas .fas {
+    color: #28a745;
+}
+.card-fasilitas .card-title {
+    font-size: 1rem;
+    margin-bottom: 0;
+    color: #333;
 }
 </style>
 @endpush

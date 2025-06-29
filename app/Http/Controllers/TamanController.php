@@ -147,7 +147,9 @@ class TamanController extends Controller
 
     public function show(Taman $taman)
     {
-        return view('taman.show', compact('taman'));
+        // Ambil data fasilitas yang dipilih dengan fotonya
+        $fasilitas = Fasilitas::whereIn('nama_fasilitas', $taman->fasilitas)->get();
+        return view('taman.show', compact('taman', 'fasilitas'));
     }
 
     public function edit(Taman $taman)
