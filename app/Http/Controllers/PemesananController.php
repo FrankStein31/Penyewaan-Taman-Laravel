@@ -125,7 +125,7 @@ class PemesananController extends Controller
             if ($request->durasi_tipe === 'satu_hari') {
                 $request->validate([
                     'taman_id' => 'required|exists:taman,id',
-                    'tanggal_mulai' => 'required|date|after_or_equal:today',
+                    'tanggal_mulai' => 'required|date|after:today',
                     'keperluan' => 'required|string',
                     'jumlah_orang' => 'required|integer|min:1'
                 ]);
@@ -136,7 +136,7 @@ class PemesananController extends Controller
             } else {
                 $request->validate([
                     'taman_id' => 'required|exists:taman,id',
-                    'tanggal_mulai' => 'required|date|after_or_equal:today',
+                    'tanggal_mulai' => 'required|date|after:today',
                     'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
                     'keperluan' => 'required|string',
                     'jumlah_orang' => 'required|integer|min:1'

@@ -74,7 +74,7 @@
                             <div id="form_satu_hari">
                                 <div class="form-group">
                                     <label for="tanggal_mulai_satu">Tanggal Sewa</label>
-                                    <input type="date" name="tanggal_mulai" id="tanggal_mulai_satu" class="form-control @error('tanggal_mulai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_mulai') }}">
+                                    <input type="date" name="tanggal_mulai" id="tanggal_mulai_satu" class="form-control @error('tanggal_mulai') is-invalid @enderror" min="{{ date('Y-m-d', strtotime('+1 day')) }}" value="{{ old('tanggal_mulai') }}">
                                     @error('tanggal_mulai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -89,7 +89,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="tanggal_mulai_range">Tanggal Mulai</label>
-                                            <input type="date" name="tanggal_mulai" id="tanggal_mulai_range" class="form-control @error('tanggal_mulai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_mulai') }}">
+                                            <input type="date" name="tanggal_mulai" id="tanggal_mulai_range" class="form-control @error('tanggal_mulai') is-invalid @enderror" min="{{ date('Y-m-d', strtotime('+1 day')) }}" value="{{ old('tanggal_mulai') }}">
                                             @error('tanggal_mulai')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
@@ -100,7 +100,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="tanggal_selesai_range">Tanggal Selesai</label>
-                                            <input type="date" name="tanggal_selesai" id="tanggal_selesai_range" class="form-control @error('tanggal_selesai') is-invalid @enderror" min="{{ date('Y-m-d') }}" value="{{ old('tanggal_selesai') }}">
+                                            <input type="date" name="tanggal_selesai" id="tanggal_selesai_range" class="form-control @error('tanggal_selesai') is-invalid @enderror" min="{{ date('Y-m-d', strtotime('+1 day')) }}" value="{{ old('tanggal_selesai') }}">
                                             @error('tanggal_selesai')
                                             <div class="invalid-feedback">
                                                 {{ $message }}
