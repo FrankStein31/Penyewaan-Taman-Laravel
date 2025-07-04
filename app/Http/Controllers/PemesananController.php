@@ -415,10 +415,17 @@ class PemesananController extends Controller
 
     public function export() 
     {
+        $filters = [
+            'status' => request('status'),
+            'pembayaran_status' => request('pembayaran_status'),
+            'keyword' => request('keyword'),
+            'tanggal_mulai' => request('tanggal_mulai'),
+            'tanggal_selesai' => request('tanggal_selesai'),
+        ];
         if (auth()->user()->isAdmin()) {
-            return Excel::download(new PemesananExport, 'laporan-pemesanan-' . date('Y-m-d') . '.xlsx');
+            return \Excel::download(new \App\Exports\PemesananExport(null, $filters), 'laporan-pemesanan-' . date('Y-m-d') . '.xlsx');
         } else {
-            return Excel::download(new PemesananExport(auth()->id()), 'pemesanan-saya-' . date('Y-m-d') . '.xlsx');
+            return \Excel::download(new \App\Exports\PemesananExport(auth()->id(), $filters), 'pemesanan-saya-' . date('Y-m-d') . '.xlsx');
         }
     }
 } 

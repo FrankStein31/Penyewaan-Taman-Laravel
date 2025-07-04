@@ -13,24 +13,52 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class PemesananExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
     protected $userId;
+    protected $filters = [];
 
-    public function __construct($userId = null)
+    public function __construct($userId = null, $filters = [])
     {
         $this->userId = $userId;
+        $this->filters = $filters;
     }
 
     public function collection()
     {
+        $query = Pemesanan::with(['user', 'taman']);
         if ($this->userId) {
-            return Pemesanan::with(['user', 'taman'])
-                    ->where('user_id', $this->userId)
-                    ->latest()
-                    ->get();
-        } else {
-            return Pemesanan::with(['user', 'taman'])
-                    ->latest()
-                    ->get();
+            $query->where('user_id', $this->userId);
         }
+        // Terapkan filter
+        if (!empty($this->filters)) {
+            if (!empty($this->filters['status'])) {
+                $query->where('status', $this->filters['status']);
+            }
+            if (!empty($this->filters['pembayaran_status'])) {
+                if ($this->filters['pembayaran_status'] == 'belum_bayar') {
+                    $query->where('status', 'disetujui')
+                          ->whereDoesntHave('pembayaran');
+                } else {
+                    $query->whereHas('pembayaran', function($q) {
+                        $q->where('status', $this->filters['pembayaran_status']);
+                    });
+                }
+            }
+            if (!empty($this->filters['tanggal_mulai'])) {
+                $query->whereDate('waktu_mulai', '>=', $this->filters['tanggal_mulai']);
+            }
+            if (!empty($this->filters['tanggal_selesai'])) {
+                $query->whereDate('waktu_selesai', '<=', $this->filters['tanggal_selesai']);
+            }
+            if (!empty($this->filters['keyword'])) {
+                $keyword = $this->filters['keyword'];
+                $query->where(function($q) use ($keyword) {
+                    $q->where('kode', 'like', "%{$keyword}%")
+                      ->orWhereHas('taman', function($q2) use ($keyword) {
+                          $q2->where('nama', 'like', "%{$keyword}%");
+                      });
+                });
+            }
+        }
+        return $query->latest()->get();
     }
 
     public function headings(): array

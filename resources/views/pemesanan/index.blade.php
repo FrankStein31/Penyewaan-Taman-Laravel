@@ -15,7 +15,13 @@
                                 <i class="fas fa-plus"></i> Buat Pemesanan
                             </a>
                         @endif
-                        <a href="{{ route('pemesanan.export') }}" class="btn btn-success">
+                        <a href="{{ route('pemesanan.export', array_filter([
+                            'status' => request('status'),
+                            'pembayaran_status' => request('pembayaran_status'),
+                            'keyword' => request('keyword'),
+                            'tanggal_mulai' => request('tanggal_mulai'),
+                            'tanggal_selesai' => request('tanggal_selesai'),
+                        ])) }}" class="btn btn-success">
                             <i class="fas fa-file-excel"></i> Export Excel
                         </a>
                     </div>
